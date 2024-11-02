@@ -4,15 +4,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.example</groupId>
-		<artifactId>spring-observability</artifactId>
+		<artifactId>no-instrumentation</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>no-instrumentation</artifactId>
+	<groupId>com.example.no-instrumentation</groupId>
+	<artifactId>micrometer-native</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<modules>
-		<module>micrometer-native</module>
+		<module>monolith-ui-api-db</module>
 	</modules>
 </project>

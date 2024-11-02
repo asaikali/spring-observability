@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.example</groupId>
-        <artifactId>no-instrumentation</artifactId>
+        <groupId>com.example.no-instrumentation</groupId>
+        <artifactId>micrometer-native</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <groupId>com.example.no-instrumentation</groupId>
+    <groupId>com.example.no-instrumentation.micrometer-native</groupId>
     <artifactId>monolith-ui-api-db</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
@@ -33,6 +33,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -43,19 +44,11 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- local development tools -->
+        <!-- observability dependencies -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-docker-compose</artifactId>-->
-<!--            <scope>runtime</scope>-->
-<!--            <optional>true</optional>-->
-<!--        </dependency>-->
 
         <!-- Test dependencies -->
         <dependency>

@@ -2,13 +2,19 @@ server:
   port: 8080
 
 management:
-  endpoint:
-    health:
-      show-details: always
+  observations:
+    key-values:
+      "service.name" : "monolith-ui-api-db"
+      region: "us-east-1"
+      stack: "prod"
   endpoints:
     web:
       exposure:
         include: "*"
+  endpoint:
+    health:
+      show-details: always
+
 
 spring:
   datasource:
