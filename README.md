@@ -27,11 +27,11 @@ dimensions:
 
 - **Collector** → This dimension indicates how observability data is exported 
   to the observability platform.
-  - **Native**: Data is sent to the observability tool using the tool’s native 
+  - **native**: Data is sent to the observability tool using the tool’s native 
     protocol, or the tool scrapes data from an endpoint within the app. For 
     example, pushing spans to Zipkin or exposing a Prometheus-compatible 
     metrics endpoint.
-  - **OpenTelemetry Collector**: Data is sent to the OpenTelemetry Collector 
+  - **otel-collector**: Data is sent to the OpenTelemetry Collector 
     using the OpenTelemetry Protocol (OTLP). The OpenTelemetry Collector can 
     also be configured with receivers compatible with other monitoring tools,
     such as Zipkin or Prometheus.
