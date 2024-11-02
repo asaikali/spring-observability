@@ -9,22 +9,21 @@ dimensions:
 
 - **App Instrumentation** → This dimension specifies the type of observability
   instrumentation embedded within the application.
-  - **None**: The application has no explicit instrumentation and relies on 
+  - **none**: The application has no explicit instrumentation and relies on 
     external agents or instrumentation within the libraries it uses. For 
     instance, the app itself may lack instrumentation, but the Spring framework
     does, allowing for observability through Spring’s built-in instrumentation.
-  - **Observation API**: The application is instrumented using the Micrometer 
+  - **observation-api**: The application is instrumented using the Micrometer 
     Observation API.
-  - **OpenTelemetry SDK**: The application is instrumented with the 
-    OpenTelemetry SDK for Java.
+  - **otel-sdk**: The application is instrumented with the OpenTelemetry SDK 
+    for Java.
 
 - **Micrometer Implementation** → This dimension describes the underlying 
   implementation that the Micrometer framework uses to collect and export 
   observability data.
-  - **Native**: Micrometer operates with its native implementation, directly 
+  - **native**: Micrometer operates with its native implementation, directly 
     integrating with compatible tools like Prometheus or Zipkin.
-  - **OpenTelemetry SDK**: Micrometer operates on top of the OpenTelemetry 
-    SDK for Java.
+  - **otel-sdk**: Micrometer operates on top of the OpenTelemetry SDK for Java.
 
 - **Collector** → This dimension indicates how observability data is exported 
   to the observability platform.
