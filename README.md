@@ -87,7 +87,7 @@ choices.
     * [IntelliJ](https://www.jetbrains.com/idea/download)
     * [VSCode](https://code.visualstudio.com/)
 
-### network toolse
+### network tools
 * [cURL](https://curl.se/docs/manpage.html) 
 * [HTTPie](https://httpie.io/) 
 
