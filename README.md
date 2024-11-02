@@ -52,6 +52,28 @@ setups based on compatibility across each dimension:
 | 7        | otel-sdk                 | otel-sdk                       | otel-collector  | yes                    |
 | 8        | otel-sdk                 | native                         | otel-collector  | no, due to conflicts   |
 
+Which of the above scenarios should adopt? It depends on what you value the most. 
+
+If you are all-in on OpenTelemetry and are trying to maximize the usage of 
+OpenTelemetry in all the layer of the stack then scenario 3 or 7 above can 
+meet your needs you get to use a maximum amount of OpenTelemetry and the 
+instrumentation built into the Spring projects using micrometer Observation 
+api natively shows up in your OpenTelemetry enable observability platform. 
+
+If you are all in on the best Spring developer experience and maximum 
+OpenTelemetry usage in the stack, then scenario 6 is for you. Use the 
+observation-api to instrument your own application code, and micrometer 
+configured to use the otel-sdk, you get all the benefits of OpenTelemetry 
+with a better developer experience for spring developers.
+
+If you are looking to minimize the number of layers/intermediaries between your 
+application and the observability platform of your choice then scenario 4
+is best for you. 
+
+If you are looking for maximum compatibility with observability platforms then
+it is best if you use the micrometer observation and you let your users decide
+how to configure micrometer at deployment time.
+
 ## Software Prerequisites
 
 ### Java tooling
