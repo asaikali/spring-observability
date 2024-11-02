@@ -58,10 +58,10 @@ If you are all-in on OpenTelemetry and are trying to maximize the usage of
 OpenTelemetry in all layers of the stack then scenario 3 or 7 above can 
 meet your needs you get to use a maximum amount of OpenTelemetry and the 
 instrumentation built into the Spring projects using micrometer Observation 
-api natively shows up in your OpenTelemetry enable observability platform. 
+api natively shows up in your OpenTelemetry enabled observability platform. 
 
 If you are all in on the best Spring developer experience and maximum 
-OpenTelemetry usage in the stack, then scenario 6 is for you. Use the 
+OpenTelemetry, then scenario 6 is for you. Use the 
 observation-api to instrument your own application code, and micrometer 
 configured to use the otel-sdk, you get all the benefits of OpenTelemetry 
 with a better developer experience for spring developers.
@@ -71,8 +71,9 @@ application and the observability platform of your choice then scenario 4
 is best for you. 
 
 If you are looking for maximum compatibility with observability platforms then
-it is best if you use the micrometer observation and you let your users decide
-how to configure micrometer at deployment time.
+it is best if you use the micrometer observation api. this let you  decide
+how to configure micrometer at deployment time. Scenarios 4,5,6 are good
+choices. 
 
 ## Software Prerequisites
 
