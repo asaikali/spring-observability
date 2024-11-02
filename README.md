@@ -55,7 +55,7 @@ setups based on compatibility across each dimension:
 Which of the above scenarios should adopt? It depends on what you value the most. 
 
 If you are all-in on OpenTelemetry and are trying to maximize the usage of 
-OpenTelemetry in all the layer of the stack then scenario 3 or 7 above can 
+OpenTelemetry in all layers of the stack then scenario 3 or 7 above can 
 meet your needs you get to use a maximum amount of OpenTelemetry and the 
 instrumentation built into the Spring projects using micrometer Observation 
 api natively shows up in your OpenTelemetry enable observability platform. 
