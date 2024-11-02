@@ -8,8 +8,9 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>applications</artifactId>
+	<artifactId>observation-api-instrumentation</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<description>Projects demonstrating best practices for observing spring applications in production</description>
 	<packaging>pom</packaging>
 	
 	<modules>
