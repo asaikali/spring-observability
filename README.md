@@ -3,10 +3,9 @@
 Modern observability equips developers with tools and frameworks to capture 
 critical telemetry data, including traces, logs, and metrics. This repository
 explores various observability configurations for Spring applications, helping 
-you select the optimal setup based on your specific needs.
-
-To understand the observability landscape fully, we evaluate each configuration
-across three key dimensions:
+you select the optimal setup based on your specific needs. To understand the 
+observability landscape fully, we evaluate each configuration across three key 
+dimensions:
 
 - **App Instrumentation** → This dimension specifies the type of observability
   instrumentation embedded within the application.
