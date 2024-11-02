@@ -5,8 +5,6 @@ critical telemetry data, including traces, logs, and metrics. This repository
 explores various observability configurations for Spring applications, helping 
 you select the optimal setup based on your specific needs.
 
-## Scenario Dimensions and Their Options
-
 To understand the observability landscape fully, we evaluate each configuration
 across three key dimensions:
 
