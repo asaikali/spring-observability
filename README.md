@@ -41,16 +41,16 @@ dimensions:
 The following table outlines possible configurations and highlights recommended 
 setups based on compatibility across each dimension:
 
-| Scenario | App <br> Instrumentation | Micrometer <br> Implementation | Collector       | Notes / Issues                                                 |
-|----------|--------------------------|--------------------------------|-----------------|----------------------------------------------------------------|
-| 1        | none                     | native                         | native          |                                                                |
-| 2        | none                     | native                         | otel-collector  |                                                                |
-| 3        | none                     | otel-sdk                       | otel-collector  |                                                                |
-| 4        | observation-api          | native                         | native          |                                                                |
-| 5        | observation-api          | native                         | otel-collector  |                                                                |
-| 6        | observation-api          | otel-sdk                       | otel-collector  |                                                                |
-| 7        | otel-sdk                 | otel-sdk                       | otel-collector  |                                                                |
-| 8        | otel-sdk                 | native                         | otel-collector  | how to get same trace id between across micrometer / otel-sdk? |
+| Scenario | App <br> Instrumentation | Micrometer <br> Implementation | Collector       | Notes / Issues                                               |
+|----------|--------------------------|--------------------------------|-----------------|--------------------------------------------------------------|
+| 1        | none                     | native                         | native          |                                                              |
+| 2        | none                     | native                         | otel-collector  |                                                              |
+| 3        | none                     | otel-sdk                       | otel-collector  |                                                              |
+| 4        | observation-api          | native                         | native          |                                                              |
+| 5        | observation-api          | native                         | otel-collector  |                                                              |
+| 6        | observation-api          | otel-sdk                       | otel-collector  |                                                              |
+| 7        | otel-sdk                 | otel-sdk                       | otel-collector  |                                                              |
+| 8        | otel-sdk                 | native                         | otel-collector  | how to get same trace id <br> between micrometer / otel-sdk? |
 
 Which of the above scenarios should adopt? It depends on what you value the most. 
 
