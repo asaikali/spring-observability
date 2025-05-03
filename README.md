@@ -80,7 +80,6 @@ choices.
 ### Java tooling
 
 * [Java 21 JDK](https://sdkman.io/)
-* [Java 21 GraalVM](https://sdkman.io/)
 * [Maven](https://maven.apache.org/index.html)
 * Favourite Java IDE one of
     * [Eclipse Spring Tool Suite](https://spring.io/tools)
