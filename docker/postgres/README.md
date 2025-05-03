@@ -34,14 +34,27 @@ The `pg` script provides a simple interface to manage the PostgreSQL and pgAdmin
 ## Services
 
 ### PostgreSQL
-- Port: 15432
+- Port: 15432 (customizable)
 - Username: postgres
 - Password: password
 
 ### pgAdmin
-- URL: http://localhost:15433
+- URL: http://localhost:15433 (customizable)
 - Email: admin@example.com
 - Password: admin
+
+## Customizing Ports
+
+You can override the default ports using environment variables:
+
+# Override both ports
+PG_PORT=25432 PGADMIN_PORT=25433 ./pg start
+```
+
+This is useful when:
+- The default ports are already in use by other services
+- You need to run multiple instances of PostgreSQL on the same machine
+- You want to avoid port conflicts with other Docker containers
 
 ## Connecting to PostgreSQL
 
@@ -58,4 +71,5 @@ The `pg` script provides a simple interface to manage the PostgreSQL and pgAdmin
 ## Notes
 - Run `./pg status` to view all connection details.
 - The `fix` command helps resolve port conflicts automatically.
-- All configuration values are hardcoded in the docker-compose.yaml file.
+- Use environment variables `PG_PORT` and `PGADMIN_PORT` to customize ports (see [Customizing Ports](#customizing-ports)).
+- All other configuration values are hardcoded in the docker-compose.yaml file.
