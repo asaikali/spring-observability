@@ -27,8 +27,34 @@
 # Get the directory of the current script
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
+# Function to find Docker Compose file
+# Usage: find_docker_compose_file <directory>
+# Returns: Path to Docker Compose file or empty string if not found
+find_docker_compose_file() {
+    local dir="$1"
+    local file_variants=("docker-compose.yaml" "docker-compose.yml" "compose.yaml" "compose.yml")
+
+    for variant in "${file_variants[@]}"; do
+        if [ -f "${dir}/${variant}" ]; then
+            echo "${dir}/${variant}"
+            return 0
+        fi
+    done
+
+    # No Docker Compose file found
+    echo ""
+    return 1
+}
+
 # Docker Compose file path
-DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yaml"
+DOCKER_COMPOSE_FILE=$(find_docker_compose_file "${SCRIPT_DIR}")
+
+# Check if Docker Compose file exists
+if [ -z "${DOCKER_COMPOSE_FILE}" ]; then
+    print_error "No Docker Compose file found in ${SCRIPT_DIR}"
+    print_info "Expected one of: docker-compose.yaml, docker-compose.yml, compose.yaml, compose.yml"
+    exit 1
+fi
 
 # Port configuration (hardcoded in the docker-compose.yaml file)
 PG_PORT="15432"
@@ -135,7 +161,10 @@ detect_port_conflicts() {
         # Try to find the Docker Compose working directory
         COMPOSE_WORKING_DIR=$(docker inspect "$PG_CONFLICT" --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
         if [ -n "$COMPOSE_WORKING_DIR" ]; then
-            PG_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
+            PG_COMPOSE_FILE=$(find_docker_compose_file "$COMPOSE_WORKING_DIR")
+            if [ -z "$PG_COMPOSE_FILE" ]; then
+                print_warning "No Docker Compose file found in $COMPOSE_WORKING_DIR"
+            fi
         fi
     fi
 
@@ -148,8 +177,14 @@ detect_port_conflicts() {
 
         # Try to find the Docker Compose working directory
         COMPOSE_WORKING_DIR=$(docker inspect "$PGADMIN_CONFLICT" --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
-        if [ -n "$COMPOSE_WORKING_DIR" ] && [ "$PG_COMPOSE_FILE" != "${COMPOSE_WORKING_DIR}/docker-compose.yaml" ]; then
-            PGADMIN_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
+        if [ -n "$COMPOSE_WORKING_DIR" ]; then
+            # Only look for a different compose file if it's not the same as the PostgreSQL one
+            if [ "$PG_COMPOSE_FILE" != "$(find_docker_compose_file "$COMPOSE_WORKING_DIR")" ]; then
+                PGADMIN_COMPOSE_FILE=$(find_docker_compose_file "$COMPOSE_WORKING_DIR")
+                if [ -z "$PGADMIN_COMPOSE_FILE" ]; then
+                    print_warning "No Docker Compose file found in $COMPOSE_WORKING_DIR"
+                fi
+            fi
         fi
     fi
 }
@@ -238,12 +273,20 @@ case "$1" in
             print_info "To fix, run: ${BOLD}pg fix${NC}"
 
             # If we have Docker Compose information, show the command to shut down the conflicting containers
-            if [ -n "${PG_COMPOSE_FILE}" ]; then
-                print_info "Or run: ${BOLD}docker compose -f ${PG_COMPOSE_FILE} down${NC}"
+            if [ -n "$PG_CONFLICT" ]; then
+                if [ -n "${PG_COMPOSE_FILE}" ]; then
+                    print_info "Or run: ${BOLD}docker compose -f ${PG_COMPOSE_FILE} down${NC}"
+                else
+                    print_info "Or run: ${BOLD}docker stop ${PG_CONFLICT}${NC}"
+                fi
             fi
 
-            if [ -n "${PGADMIN_COMPOSE_FILE}" ] && [ "${PG_COMPOSE_FILE}" != "${PGADMIN_COMPOSE_FILE}" ]; then
-                print_info "And: ${BOLD}docker compose -f ${PGADMIN_COMPOSE_FILE} down${NC}"
+            if [ -n "$PGADMIN_CONFLICT" ]; then
+                if [ -n "${PGADMIN_COMPOSE_FILE}" ] && [ "${PG_COMPOSE_FILE}" != "${PGADMIN_COMPOSE_FILE}" ]; then
+                    print_info "And: ${BOLD}docker compose -f ${PGADMIN_COMPOSE_FILE} down${NC}"
+                elif [ -z "${PGADMIN_COMPOSE_FILE}" ]; then
+                    print_info "And: ${BOLD}docker stop ${PGADMIN_CONFLICT}${NC}"
+                fi
             fi
 
             # Exit with the original error code
@@ -280,7 +323,7 @@ case "$1" in
 
         # Get container status
         display_container_status
-        
+
         # Display connection information
         display_connection_info
         ;;
@@ -295,21 +338,36 @@ case "$1" in
         detect_port_conflicts
 
         # Shut down conflicting containers
-        if [ -n "$PG_COMPOSE_FILE" ]; then
-            print_info "Shutting down: $PG_CONFLICT"
-            docker compose -f "$PG_COMPOSE_FILE" down
+        if [ -n "$PG_CONFLICT" ]; then
+            if [ -n "$PG_COMPOSE_FILE" ]; then
+                print_info "Shutting down: $PG_CONFLICT"
+                docker compose -f "$PG_COMPOSE_FILE" down
+            else
+                print_warning "Cannot shut down $PG_CONFLICT automatically - no Docker Compose file found"
+                print_info "Try manually with: docker stop $PG_CONFLICT"
+            fi
         fi
 
-        if [ -n "$PGADMIN_COMPOSE_FILE" ]; then
-            print_info "Shutting down: $PGADMIN_CONFLICT"
-            docker compose -f "$PGADMIN_COMPOSE_FILE" down
+        if [ -n "$PGADMIN_CONFLICT" ]; then
+            if [ -n "$PGADMIN_COMPOSE_FILE" ]; then
+                print_info "Shutting down: $PGADMIN_CONFLICT"
+                docker compose -f "$PGADMIN_COMPOSE_FILE" down
+            else
+                print_warning "Cannot shut down $PGADMIN_CONFLICT automatically - no Docker Compose file found"
+                print_info "Try manually with: docker stop $PGADMIN_CONFLICT"
+            fi
         fi
 
         # Report results
-        if [ -z "$PG_COMPOSE_FILE" ] && [ -z "$PGADMIN_COMPOSE_FILE" ]; then
+        if [ -z "$PG_CONFLICT" ] && [ -z "$PGADMIN_CONFLICT" ]; then
             print_success "No port conflicts detected"
         else
-            print_success "Port conflicts resolved. Run 'pg start' to start PostgreSQL"
+            if [ -n "$PG_COMPOSE_FILE" ] || [ -n "$PGADMIN_COMPOSE_FILE" ]; then
+                print_success "Port conflicts resolved. Run 'pg start' to start PostgreSQL"
+            else
+                print_warning "Some port conflicts could not be automatically resolved"
+                print_info "Please manually stop the conflicting containers or use different ports"
+            fi
         fi
         ;;
 

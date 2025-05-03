@@ -112,6 +112,8 @@ If you need to customize the configuration, you can edit the docker-compose.yaml
 - The containers are configured to restart automatically unless explicitly stopped.
 - To completely reset the database and pgAdmin, use the `clean` command.
 - All configuration values are hardcoded in the docker-compose.yaml file for simplicity and clarity.
+- The script supports multiple Docker Compose file name variations: `docker-compose.yaml`, `docker-compose.yml`, `compose.yaml`, and `compose.yml`.
+- If no Docker Compose file is found in the script directory, an error message will be displayed.
 
 ## Port Conflict Detection
 
@@ -120,7 +122,9 @@ The `pg` script includes built-in port conflict detection when starting containe
 1. Detect the conflict and display a concise error message
 2. Show which containers are using the conflicting ports
 3. Provide a simple command to fix the issue (`pg fix`)
-4. Offer a direct Docker Compose command as an alternative
+4. Offer direct commands to shut down the conflicting containers:
+   - Using Docker Compose if a compose file is found for the conflicting container
+   - Using `docker stop` if no compose file is found
 
 Example output when a port conflict is detected:
 
@@ -135,6 +139,19 @@ Example output when a port conflict is detected:
 > Or run: docker compose -f /Users/adib/dev/asaikali/spring-ai-zero-to-hero/docker/pgvector/docker-compose.yaml down
 ```
 
+If no Docker Compose file is found for a conflicting container:
+
+```
+== Starting PostgreSQL Containers ==
+
+> Running docker compose up...
+✗ Failed to start PostgreSQL containers - Port conflict detected
+! Port 15432 in use by: some_postgres_container
+! No Docker Compose file found in /path/to/container/directory
+> To fix, run: pg fix
+> Or run: docker stop some_postgres_container
+```
+
 ### Using the Fix Command
 
 The easiest way to resolve port conflicts is to use the `pg fix` command:
@@ -143,7 +160,7 @@ The easiest way to resolve port conflicts is to use the `pg fix` command:
 ./pg fix
 ```
 
-Example output:
+Example output when Docker Compose files are found:
 
 ```
 == Fixing Port Conflicts ==
@@ -154,4 +171,16 @@ Example output:
 ✓ Port conflicts resolved. Run 'pg start' to start PostgreSQL
 ```
 
-This command automatically detects and shuts down conflicting containers without requiring you to change directories.
+Example output when no Docker Compose files are found:
+
+```
+== Fixing Port Conflicts ==
+! Port 15432 in use by: some_postgres_container
+! No Docker Compose file found in /path/to/container/directory
+! Cannot shut down some_postgres_container automatically - no Docker Compose file found
+> Try manually with: docker stop some_postgres_container
+! Some port conflicts could not be automatically resolved
+> Please manually stop the conflicting containers or use different ports
+```
+
+This command automatically detects port conflicts and attempts to shut down conflicting containers. If Docker Compose files are found, it uses them to shut down the containers. If no Docker Compose files are found, it suggests manual commands to stop the containers.
