@@ -167,7 +167,6 @@ show_port_conflicts() {
   done
   # Show quick fix options
   log info "Quick fix: pg fix"
-  log info "Alternatively set different PG_PORT / PGADMIN_PORT env vars."
 }
 
 #------------------------------------------------------------------------------
