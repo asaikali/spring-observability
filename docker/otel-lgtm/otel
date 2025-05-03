@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# https://grafana.com/blog/2024/03/13/an-opentelemetry-backend-in-a-docker-image-introducing-grafana/otel-lgtm/
+# details https://github.com/grafana/docker-otel-lgtm
+#
+docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -ti grafana/otel-lgtm
