@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
 #==============================================================================
 # PostgreSQL Container Manager Script
 #==============================================================================
@@ -26,50 +28,6 @@
 
 # Get the directory of the current script
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
-
-# Function to find Docker Compose file
-# Usage: find_docker_compose_file <directory>
-# Returns: Path to Docker Compose file or empty string if not found
-find_docker_compose_file() {
-    local dir="$1"
-    local file_variants=("docker-compose.yaml" "docker-compose.yml" "compose.yaml" "compose.yml")
-
-    for variant in "${file_variants[@]}"; do
-        if [ -f "${dir}/${variant}" ]; then
-            echo "${dir}/${variant}"
-            return 0
-        fi
-    done
-
-    # No Docker Compose file found
-    echo ""
-    return 1
-}
-
-# Docker Compose file path
-DOCKER_COMPOSE_FILE=$(find_docker_compose_file "${SCRIPT_DIR}")
-
-# Check if Docker Compose file exists
-if [ -z "${DOCKER_COMPOSE_FILE}" ]; then
-    print_error "No Docker Compose file found in ${SCRIPT_DIR}"
-    print_info "Expected one of: docker-compose.yaml, docker-compose.yml, compose.yaml, compose.yml"
-    exit 1
-fi
-
-# Port configuration (hardcoded in the docker-compose.yaml file)
-PG_PORT="15432"
-PGADMIN_PORT="15433"
-
-# Database connection details
-DB_HOST="localhost"
-DB_USER="postgres"
-DB_PASSWORD="password"
-DB_NAME="postgres"
-
-# pgAdmin connection details
-PGADMIN_URL="http://localhost:${PGADMIN_PORT}"
-PGADMIN_EMAIL="admin@example.com"
-PGADMIN_PASSWORD="admin"
 
 #==============================================================================
 # FORMATTING FUNCTIONS
@@ -118,6 +76,61 @@ print_warning() {
 print_info() {
     echo -e "${BLUE}> $1${NC}"
 }
+
+# Function to ensure a command is available
+require_command() {
+    if ! command -v "$1" &> /dev/null; then
+        print_error "Required command '$1' not found. Please install it."
+        exit 1
+    fi
+}
+
+# Ensure Docker is installed
+require_command docker
+
+# Function to find Docker Compose file
+# Usage: find_docker_compose_file <directory>
+# Returns: Path to Docker Compose file or empty string if not found
+find_docker_compose_file() {
+    local dir="$1"
+    local file_variants=("docker-compose.yaml" "docker-compose.yml" "compose.yaml" "compose.yml")
+
+    for variant in "${file_variants[@]}"; do
+        if [ -f "${dir}/${variant}" ]; then
+            echo "${dir}/${variant}"
+            return 0
+        fi
+    done
+
+    # No Docker Compose file found
+    echo ""
+    return 1
+}
+
+# Docker Compose file path
+DOCKER_COMPOSE_FILE=$(find_docker_compose_file "${SCRIPT_DIR}")
+
+# Check if Docker Compose file exists
+if [ -z "${DOCKER_COMPOSE_FILE}" ]; then
+    print_error "No Docker Compose file found in ${SCRIPT_DIR}"
+    print_info "Expected one of: docker-compose.yaml, docker-compose.yml, compose.yaml, compose.yml"
+    exit 1
+fi
+
+# Allow PG_PORT and PGADMIN_PORT to be overridden via environment
+PG_PORT="${PG_PORT:-15432}"
+PGADMIN_PORT="${PGADMIN_PORT:-15433}"
+
+# Database connection details
+DB_HOST="localhost"
+DB_USER="postgres"
+DB_PASSWORD="password"
+DB_NAME="postgres"
+
+# pgAdmin connection details
+PGADMIN_URL="http://localhost:${PGADMIN_PORT}"
+PGADMIN_EMAIL="admin@example.com"
+PGADMIN_PASSWORD="admin"
 
 #==============================================================================
 # UTILITY FUNCTIONS
