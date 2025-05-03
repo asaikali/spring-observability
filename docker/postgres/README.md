@@ -25,7 +25,7 @@ The `pg` script provides a simple interface to manage the PostgreSQL and pgAdmin
 The `pg` script supports the following commands:
 
 - `start`: Starts the PostgreSQL and pgAdmin containers in detached mode and displays their status.
-- `status`: Checks if the PostgreSQL and pgAdmin containers are running and displays connection information including ports and URLs.
+- `status`: Displays detailed container status in a tabular format and provides comprehensive connection information including ports, credentials, and JDBC connection URL for PostgreSQL and pgAdmin.
 - `stop`: Stops the running containers.
 - `clean`: Stops the containers and removes all associated volumes, effectively cleaning up all data.
 
@@ -61,6 +61,14 @@ You can connect to PostgreSQL using any PostgreSQL client with these details:
 - Port: 15432
 - Username: postgres
 - Password: password
+- Database: postgres
+
+For Java applications using JDBC, use the following connection URL:
+```
+jdbc:postgresql://localhost:15432/postgres
+```
+
+You can also run `./pg status` to view all connection details including the JDBC URL.
 
 ### Using pgAdmin
 
