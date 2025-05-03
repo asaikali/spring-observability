@@ -21,7 +21,7 @@ print_header() {
 # Function to print a section
 print_section() {
     echo -e "\n${BOLD}${YELLOW}┌─────────────────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BOLD}${YELLOW}│ $1${NC}$(printf "%$((75 - ${#1}))s" " ")${BOLD}${YELLOW}│${NC}"
+    echo -e "${BOLD}${YELLOW}│ $1${NC}$(printf "%$((76 - ${#1}))s" " ")${BOLD}${YELLOW}│${NC}"
     echo -e "${BOLD}${YELLOW}└─────────────────────────────────────────────────────────────────────────────┘${NC}"
 }
 
@@ -94,6 +94,14 @@ case "$1" in
                     if [ ! -z "$COMPOSE_CONFIG" ]; then
                         print_info "Docker Compose file: $COMPOSE_CONFIG"
                     fi
+
+                    # Try to find the Docker Compose working directory
+                    COMPOSE_WORKING_DIR=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
+                    if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
+                        # Store the working directory for later use
+                        PG_COMPOSE_WORKING_DIR="$COMPOSE_WORKING_DIR"
+                        PG_COMPOSE_PROJECT="$COMPOSE_PROJECT"
+                    fi
                 fi
             fi
 
@@ -114,6 +122,14 @@ case "$1" in
                     if [ ! -z "$COMPOSE_CONFIG" ]; then
                         print_info "Docker Compose file: $COMPOSE_CONFIG"
                     fi
+
+                    # Try to find the Docker Compose working directory
+                    COMPOSE_WORKING_DIR=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
+                    if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
+                        # Store the working directory for later use
+                        PGADMIN_COMPOSE_WORKING_DIR="$COMPOSE_WORKING_DIR"
+                        PGADMIN_COMPOSE_PROJECT="$COMPOSE_PROJECT"
+                    fi
                 fi
             fi
 
@@ -121,6 +137,21 @@ case "$1" in
             print_info "To resolve this conflict, you can either:"
             echo "  1. Stop the conflicting containers using 'docker stop <container_name>'"
             echo "  2. Modify the docker-compose.yaml file to use different ports"
+
+            # If we have Docker Compose information, show the command to shut down the conflicting containers
+            if [ ! -z "${PG_COMPOSE_WORKING_DIR}" ] || [ ! -z "${PGADMIN_COMPOSE_WORKING_DIR}" ]; then
+                print_section "Docker Compose Shutdown Commands"
+
+                if [ ! -z "${PG_COMPOSE_WORKING_DIR}" ]; then
+                    print_info "To shut down the conflicting PostgreSQL container using Docker Compose:"
+                    echo "  cd ${PG_COMPOSE_WORKING_DIR} && docker compose down"
+                fi
+
+                if [ ! -z "${PGADMIN_COMPOSE_WORKING_DIR}" ] && [ "${PG_COMPOSE_WORKING_DIR}" != "${PGADMIN_COMPOSE_WORKING_DIR}" ]; then
+                    print_info "To shut down the conflicting pgAdmin container using Docker Compose:"
+                    echo "  cd ${PGADMIN_COMPOSE_WORKING_DIR} && docker compose down"
+                fi
+            fi
 
             # Exit with the original error code
             exit $UP_EXIT_CODE
