@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Get the directory of the current script
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+
+# Check if a command was provided
+if [ $# -eq 0 ]; then
+    echo "Usage: pg [command]"
+    echo "Commands:"
+    echo "  start - Start PostgreSQL containers"
+    echo "  stop  - Stop PostgreSQL containers"
+    echo "  clean - Stop PostgreSQL containers and remove volumes"
+    exit 1
+fi
+
+# Execute the appropriate command
+case "$1" in
+    start)
+        echo "Starting PostgreSQL containers..."
+        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml up -d
+        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml \
+            ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+        ;;
+    stop)
+        echo "Stopping PostgreSQL containers..."
+        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml down
+        ;;
+    clean)
+        echo "Cleaning up PostgreSQL containers and volumes..."
+        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml down -v
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Usage: pg [command]"
+        echo "Commands:"
+        echo "  start - Start PostgreSQL containers"
+        echo "  stop  - Stop PostgreSQL containers"
+        echo "  clean - Stop PostgreSQL containers and remove volumes"
+        exit 1
+        ;;
+esac
