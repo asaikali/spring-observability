@@ -94,52 +94,24 @@ If you're connecting from another Docker container in the same network, use:
 - Username: postgres
 - Password: password
 
-## Environment Configuration
+## Configuration
 
-The PostgreSQL setup can be customized using an optional `pg.env` file in the same directory as the `pg` script. This file contains environment variables for the PostgreSQL and pgAdmin containers.
+The PostgreSQL setup is configured with hardcoded values in the docker-compose.yaml file:
 
-The docker-compose.yaml file includes default values for all environment variables, so the `pg.env` file is completely optional. If the `pg.env` file doesn't exist, the following default values will be used:
+- PostgreSQL image: postgres:17
+- PostgreSQL port: 15432
+- pgAdmin image: dpage/pgadmin4:9.3
+- pgAdmin port: 15433
 
-```bash
-# PostgreSQL Configuration
-PG_IMAGE=postgres:17
-PG_PORT=15432
+All other configuration values (usernames, passwords, etc.) are also hardcoded in the Docker Compose file.
 
-# pgAdmin Configuration
-PGADMIN_IMAGE=dpage/pgadmin4:9.3
-PGADMIN_PORT=15433
-```
-
-All other configuration values (usernames, passwords, etc.) are hardcoded in the Docker Compose file.
-
-### Customizing the Configuration
-
-To customize the configuration:
-
-1. Edit the `pg.env` file in the same directory as the `pg` script
-2. Set the desired values for the variables
-3. Run the `pg` commands as usual
-
-Example of a customized `pg.env` file that changes the PostgreSQL image and port:
-
-```bash
-# PostgreSQL Configuration
-PG_IMAGE=postgres:16
-PG_PORT=15434
-
-# pgAdmin Configuration
-PGADMIN_IMAGE=dpage/pgadmin4:9.3
-PGADMIN_PORT=15435
-```
-
-Remember that only the image and port variables need to be defined in the `pg.env` file. All other configuration values are hardcoded in the Docker Compose file.
+If you need to customize the configuration, you can edit the docker-compose.yaml file directly.
 
 ## Notes
 
 - The containers are configured to restart automatically unless explicitly stopped.
 - To completely reset the database and pgAdmin, use the `clean` command.
-- The `pg.env` file is optional. If it's not present, the script will use default values.
-- The docker-compose.yaml file includes default values for all environment variables, so the setup will work even without a `pg.env` file.
+- All configuration values are hardcoded in the docker-compose.yaml file for simplicity and clarity.
 
 ## Port Conflict Detection
 

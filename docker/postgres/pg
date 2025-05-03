@@ -11,41 +11,16 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
 # Docker Compose file path
 DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yaml"
-ENV_FILE="${SCRIPT_DIR}/pg.env"
 
-# Set default values for environment variables
-PG_IMAGE="postgres:17"
-PG_PORT="15432"
-PGADMIN_IMAGE="dpage/pgadmin4:9.3"
-PGADMIN_PORT="15433"
-
-# Check if the environment file exists
-if [ -f "$ENV_FILE" ]; then
-    echo "Loading configuration from ${ENV_FILE}"
-    source "$ENV_FILE"
-else
-    echo "Environment file ${ENV_FILE} not found. Using default values."
-fi
-
-# Note: Environment variables are loaded from pg.env file if it exists, otherwise defaults are used.
-# They are passed to Docker Compose using the --env-file option if the file exists.
-
-# Function to generate docker-compose command with or without --env-file option
+# Function to run docker compose commands
 # Usage: docker_compose_cmd [additional_args]
 docker_compose_cmd() {
-    if [ -f "$ENV_FILE" ]; then
-        docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} $@
-    else
-        # Export environment variables so Docker Compose can use them
-        export PG_IMAGE
-        export PG_PORT
-        export PGADMIN_IMAGE
-        export PGADMIN_PORT
-        docker compose -f ${DOCKER_COMPOSE_FILE} $@
-    fi
+    docker compose -f ${DOCKER_COMPOSE_FILE} "$@"
 }
 
-# Port configuration (already set above with defaults or from env file)
+# Port configuration is hardcoded in the docker-compose.yaml file
+PG_PORT="15432"
+PGADMIN_PORT="15433"
 
 # Database connection details
 DB_HOST="localhost"
@@ -179,7 +154,8 @@ case "$1" in
         if [ $UP_EXIT_CODE -eq 0 ]; then
             print_success "PostgreSQL containers started successfully"
             print_section "Container Status"
-            docker_compose_cmd ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+            CONTAINER_STATUS=$(docker_compose_cmd ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}")
+            echo "$CONTAINER_STATUS"
         else
             print_error "Failed to start PostgreSQL containers - Port conflict detected"
 
