@@ -13,36 +13,32 @@ NC='\033[0m' # No Color
 
 # Function to print a header
 print_header() {
-    echo -e "\n${BOLD}${BLUE}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${BOLD}${BLUE}┃ $1${NC}$(printf "%$((76 - ${#1}))s" " ")${BOLD}${BLUE}┃${NC}"
-    echo -e "${BOLD}${BLUE}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+    echo -e "\n${BOLD}${BLUE}== $1 ==${NC}"
 }
 
 # Function to print a section
 print_section() {
-    echo -e "\n${BOLD}${YELLOW}┌─────────────────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BOLD}${YELLOW}│ $1${NC}$(printf "%$((76 - ${#1}))s" " ")${BOLD}${YELLOW}│${NC}"
-    echo -e "${BOLD}${YELLOW}└─────────────────────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "\n${BOLD}${YELLOW}-- $1 --${NC}"
 }
 
 # Function to print success message
 print_success() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN}✓ $1${NC}"
 }
 
 # Function to print error message
 print_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}✗ $1${NC}"
 }
 
 # Function to print warning message
 print_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}! $1${NC}"
 }
 
 # Function to print info message
 print_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+    echo -e "${BLUE}> $1${NC}"
 }
 
 # Check if a command was provided
@@ -54,6 +50,7 @@ if [ $# -eq 0 ]; then
     echo -e "  ${BLUE}status${NC} - Check if PostgreSQL containers are running and display connection information"
     echo -e "  ${YELLOW}stop${NC}   - Stop PostgreSQL containers"
     echo -e "  ${RED}clean${NC}  - Stop PostgreSQL containers and remove volumes"
+    echo -e "  ${YELLOW}fix${NC}    - Detect and fix port conflicts by shutting down conflicting containers"
     exit 1
 fi
 
@@ -144,13 +141,15 @@ case "$1" in
 
                 if [ ! -z "${PG_COMPOSE_WORKING_DIR}" ]; then
                     print_info "To shut down the conflicting PostgreSQL container using Docker Compose:"
-                    echo "  cd ${PG_COMPOSE_WORKING_DIR} && docker compose down"
+                    echo "  docker compose -f ${PG_COMPOSE_WORKING_DIR}/docker-compose.yaml down"
                 fi
 
                 if [ ! -z "${PGADMIN_COMPOSE_WORKING_DIR}" ] && [ "${PG_COMPOSE_WORKING_DIR}" != "${PGADMIN_COMPOSE_WORKING_DIR}" ]; then
                     print_info "To shut down the conflicting pgAdmin container using Docker Compose:"
-                    echo "  cd ${PGADMIN_COMPOSE_WORKING_DIR} && docker compose down"
+                    echo "  docker compose -f ${PGADMIN_COMPOSE_WORKING_DIR}/docker-compose.yaml down"
                 fi
+
+                print_info "Or simply run: pg fix"
             fi
 
             # Exit with the original error code
@@ -206,6 +205,59 @@ case "$1" in
             print_error "PostgreSQL is not running"
         fi
         ;;
+    fix)
+        print_header "Fixing Port Conflicts"
+        print_info "Detecting port conflicts..."
+
+        # Check for containers using PostgreSQL port (15432)
+        PG_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15432")
+        PG_COMPOSE_FILE=""
+
+        if [ ! -z "$PG_CONFLICT" ]; then
+            print_warning "Port conflict detected: Port 15432 is already in use by container: $PG_CONFLICT"
+
+            # Try to find the Docker Compose project for the conflicting container
+            COMPOSE_WORKING_DIR=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
+            if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
+                PG_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
+                print_info "Found Docker Compose file: $PG_COMPOSE_FILE"
+            fi
+        fi
+
+        # Check for containers using pgAdmin port (15433)
+        PGADMIN_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15433")
+        PGADMIN_COMPOSE_FILE=""
+
+        if [ ! -z "$PGADMIN_CONFLICT" ]; then
+            print_warning "Port conflict detected: Port 15433 is already in use by container: $PGADMIN_CONFLICT"
+
+            # Try to find the Docker Compose project for the conflicting container
+            COMPOSE_WORKING_DIR=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
+            if [ ! -z "$COMPOSE_WORKING_DIR" ] && [ "$PG_COMPOSE_FILE" != "${COMPOSE_WORKING_DIR}/docker-compose.yaml" ]; then
+                PGADMIN_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
+                print_info "Found Docker Compose file: $PGADMIN_COMPOSE_FILE"
+            fi
+        fi
+
+        # Shut down conflicting containers
+        if [ ! -z "$PG_COMPOSE_FILE" ]; then
+            print_info "Shutting down containers from: $PG_COMPOSE_FILE"
+            docker compose -f "$PG_COMPOSE_FILE" down
+            print_success "Successfully shut down containers from: $PG_COMPOSE_FILE"
+        fi
+
+        if [ ! -z "$PGADMIN_COMPOSE_FILE" ]; then
+            print_info "Shutting down containers from: $PGADMIN_COMPOSE_FILE"
+            docker compose -f "$PGADMIN_COMPOSE_FILE" down
+            print_success "Successfully shut down containers from: $PGADMIN_COMPOSE_FILE"
+        fi
+
+        if [ -z "$PG_COMPOSE_FILE" ] && [ -z "$PGADMIN_COMPOSE_FILE" ]; then
+            print_success "No port conflicts detected or no Docker Compose files found for conflicting containers"
+        else
+            print_success "Port conflicts resolved. You can now run 'pg start' to start your PostgreSQL containers"
+        fi
+        ;;
     *)
         print_header "Unknown Command: $1"
         echo -e "${BOLD}Usage:${NC} pg [command]"
@@ -214,6 +266,7 @@ case "$1" in
         echo -e "  ${BLUE}status${NC} - Check if PostgreSQL containers are running and display connection information"
         echo -e "  ${YELLOW}stop${NC}   - Stop PostgreSQL containers"
         echo -e "  ${RED}clean${NC}  - Stop PostgreSQL containers and remove volumes"
+        echo -e "  ${YELLOW}fix${NC}    - Detect and fix port conflicts by shutting down conflicting containers"
         exit 1
         ;;
 esac
