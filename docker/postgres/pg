@@ -7,9 +7,10 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 if [ $# -eq 0 ]; then
     echo "Usage: pg [command]"
     echo "Commands:"
-    echo "  start - Start PostgreSQL containers"
-    echo "  stop  - Stop PostgreSQL containers"
-    echo "  clean - Stop PostgreSQL containers and remove volumes"
+    echo "  start  - Start PostgreSQL containers"
+    echo "  stop   - Stop PostgreSQL containers"
+    echo "  clean  - Stop PostgreSQL containers and remove volumes"
+    echo "  status - Check if PostgreSQL containers are running and display connection information"
     exit 1
 fi
 
@@ -29,13 +30,36 @@ case "$1" in
         echo "Cleaning up PostgreSQL containers and volumes..."
         docker compose -f ${SCRIPT_DIR}/docker-compose.yaml down -v
         ;;
+    status)
+        echo "Checking PostgreSQL containers status..."
+        # Check if containers are running
+        if docker compose -f ${SCRIPT_DIR}/docker-compose.yaml ps --services --filter "status=running" | grep -q "postgres"; then
+            echo "PostgreSQL is running"
+            echo "PostgreSQL port: 15432"
+            echo "PostgreSQL connection: localhost:15432"
+            echo "Username: postgres"
+            echo "Password: password"
+
+            if docker compose -f ${SCRIPT_DIR}/docker-compose.yaml ps --services --filter "status=running" | grep -q "pgadmin"; then
+                echo "pgAdmin is running"
+                echo "pgAdmin URL: http://localhost:15433"
+                echo "pgAdmin login: admin@example.com"
+                echo "pgAdmin password: admin"
+            else
+                echo "pgAdmin is not running"
+            fi
+        else
+            echo "PostgreSQL is not running"
+        fi
+        ;;
     *)
         echo "Unknown command: $1"
         echo "Usage: pg [command]"
         echo "Commands:"
-        echo "  start - Start PostgreSQL containers"
-        echo "  stop  - Stop PostgreSQL containers"
-        echo "  clean - Stop PostgreSQL containers and remove volumes"
+        echo "  start  - Start PostgreSQL containers"
+        echo "  stop   - Stop PostgreSQL containers"
+        echo "  clean  - Stop PostgreSQL containers and remove volumes"
+        echo "  status - Check if PostgreSQL containers are running and display connection information"
         exit 1
         ;;
 esac

@@ -10,6 +10,9 @@ The `pg` script provides a simple interface to manage the PostgreSQL and pgAdmin
 # Start PostgreSQL and pgAdmin
 ./pg start
 
+# Check the status of containers and display connection information
+./pg status
+
 # Stop the containers
 ./pg stop
 
@@ -22,6 +25,7 @@ The `pg` script provides a simple interface to manage the PostgreSQL and pgAdmin
 The `pg` script supports the following commands:
 
 - `start`: Starts the PostgreSQL and pgAdmin containers in detached mode and displays their status.
+- `status`: Checks if the PostgreSQL and pgAdmin containers are running and displays connection information including ports and URLs.
 - `stop`: Stops the running containers.
 - `clean`: Stops the containers and removes all associated volumes, effectively cleaning up all data.
 
