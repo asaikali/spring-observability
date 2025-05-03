@@ -70,86 +70,48 @@ case "$1" in
             docker compose -f ${SCRIPT_DIR}/docker-compose.yaml \
                 ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
         else
-            print_error "Failed to start PostgreSQL containers"
-            print_section "Port Conflict Detection"
-            print_info "Checking for port conflicts..."
+            print_error "Failed to start PostgreSQL containers - Port conflict detected"
 
             # Check for containers using PostgreSQL port (15432)
             PG_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15432")
+            PG_COMPOSE_FILE=""
+
             if [ ! -z "$PG_CONFLICT" ]; then
-                print_warning "Port conflict detected: Port 15432 is already in use by container: $PG_CONFLICT"
-                print_section "PostgreSQL Container Details"
-                docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Ports}}" -f "publish=15432"
+                print_warning "Port 15432 in use by: $PG_CONFLICT"
 
-                # Try to find the Docker Compose project for the conflicting container
-                COMPOSE_PROJECT=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project"}}')
-                if [ ! -z "$COMPOSE_PROJECT" ]; then
-                    print_info "This container belongs to Docker Compose project: $COMPOSE_PROJECT"
-
-                    # Try to find the Docker Compose file
-                    COMPOSE_CONFIG=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.config_files"}}')
-                    if [ ! -z "$COMPOSE_CONFIG" ]; then
-                        print_info "Docker Compose file: $COMPOSE_CONFIG"
-                    fi
-
-                    # Try to find the Docker Compose working directory
-                    COMPOSE_WORKING_DIR=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
-                    if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
-                        # Store the working directory for later use
-                        PG_COMPOSE_WORKING_DIR="$COMPOSE_WORKING_DIR"
-                        PG_COMPOSE_PROJECT="$COMPOSE_PROJECT"
-                    fi
+                # Try to find the Docker Compose working directory
+                COMPOSE_WORKING_DIR=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
+                if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
+                    PG_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
+                    PG_COMPOSE_WORKING_DIR="$COMPOSE_WORKING_DIR"
                 fi
             fi
 
             # Check for containers using pgAdmin port (15433)
             PGADMIN_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15433")
+            PGADMIN_COMPOSE_FILE=""
+
             if [ ! -z "$PGADMIN_CONFLICT" ]; then
-                print_warning "Port conflict detected: Port 15433 is already in use by container: $PGADMIN_CONFLICT"
-                print_section "pgAdmin Container Details"
-                docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Ports}}" -f "publish=15433"
+                print_warning "Port 15433 in use by: $PGADMIN_CONFLICT"
 
-                # Try to find the Docker Compose project for the conflicting container
-                COMPOSE_PROJECT=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project"}}')
-                if [ ! -z "$COMPOSE_PROJECT" ]; then
-                    print_info "This container belongs to Docker Compose project: $COMPOSE_PROJECT"
-
-                    # Try to find the Docker Compose file
-                    COMPOSE_CONFIG=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.config_files"}}')
-                    if [ ! -z "$COMPOSE_CONFIG" ]; then
-                        print_info "Docker Compose file: $COMPOSE_CONFIG"
-                    fi
-
-                    # Try to find the Docker Compose working directory
-                    COMPOSE_WORKING_DIR=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
-                    if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
-                        # Store the working directory for later use
-                        PGADMIN_COMPOSE_WORKING_DIR="$COMPOSE_WORKING_DIR"
-                        PGADMIN_COMPOSE_PROJECT="$COMPOSE_PROJECT"
-                    fi
+                # Try to find the Docker Compose working directory
+                COMPOSE_WORKING_DIR=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
+                if [ ! -z "$COMPOSE_WORKING_DIR" ] && [ "$PG_COMPOSE_FILE" != "${COMPOSE_WORKING_DIR}/docker-compose.yaml" ]; then
+                    PGADMIN_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
+                    PGADMIN_COMPOSE_WORKING_DIR="$COMPOSE_WORKING_DIR"
                 fi
             fi
 
-            print_section "Resolution Steps"
-            print_info "To resolve this conflict, you can either:"
-            echo "  1. Stop the conflicting containers using 'docker stop <container_name>'"
-            echo "  2. Modify the docker-compose.yaml file to use different ports"
+            # Show fix command
+            print_info "To fix, run: ${BOLD}pg fix${NC}"
 
             # If we have Docker Compose information, show the command to shut down the conflicting containers
-            if [ ! -z "${PG_COMPOSE_WORKING_DIR}" ] || [ ! -z "${PGADMIN_COMPOSE_WORKING_DIR}" ]; then
-                print_section "Docker Compose Shutdown Commands"
+            if [ ! -z "${PG_COMPOSE_FILE}" ]; then
+                print_info "Or run: ${BOLD}docker compose -f ${PG_COMPOSE_FILE} down${NC}"
+            fi
 
-                if [ ! -z "${PG_COMPOSE_WORKING_DIR}" ]; then
-                    print_info "To shut down the conflicting PostgreSQL container using Docker Compose:"
-                    echo "  docker compose -f ${PG_COMPOSE_WORKING_DIR}/docker-compose.yaml down"
-                fi
-
-                if [ ! -z "${PGADMIN_COMPOSE_WORKING_DIR}" ] && [ "${PG_COMPOSE_WORKING_DIR}" != "${PGADMIN_COMPOSE_WORKING_DIR}" ]; then
-                    print_info "To shut down the conflicting pgAdmin container using Docker Compose:"
-                    echo "  docker compose -f ${PGADMIN_COMPOSE_WORKING_DIR}/docker-compose.yaml down"
-                fi
-
-                print_info "Or simply run: pg fix"
+            if [ ! -z "${PGADMIN_COMPOSE_FILE}" ] && [ "${PG_COMPOSE_FILE}" != "${PGADMIN_COMPOSE_FILE}" ]; then
+                print_info "And: ${BOLD}docker compose -f ${PGADMIN_COMPOSE_FILE} down${NC}"
             fi
 
             # Exit with the original error code
@@ -207,20 +169,16 @@ case "$1" in
         ;;
     fix)
         print_header "Fixing Port Conflicts"
-        print_info "Detecting port conflicts..."
 
         # Check for containers using PostgreSQL port (15432)
         PG_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15432")
         PG_COMPOSE_FILE=""
 
         if [ ! -z "$PG_CONFLICT" ]; then
-            print_warning "Port conflict detected: Port 15432 is already in use by container: $PG_CONFLICT"
-
-            # Try to find the Docker Compose project for the conflicting container
+            print_warning "Port 15432 in use by: $PG_CONFLICT"
             COMPOSE_WORKING_DIR=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
             if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
                 PG_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
-                print_info "Found Docker Compose file: $PG_COMPOSE_FILE"
             fi
         fi
 
@@ -229,33 +187,28 @@ case "$1" in
         PGADMIN_COMPOSE_FILE=""
 
         if [ ! -z "$PGADMIN_CONFLICT" ]; then
-            print_warning "Port conflict detected: Port 15433 is already in use by container: $PGADMIN_CONFLICT"
-
-            # Try to find the Docker Compose project for the conflicting container
+            print_warning "Port 15433 in use by: $PGADMIN_CONFLICT"
             COMPOSE_WORKING_DIR=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
             if [ ! -z "$COMPOSE_WORKING_DIR" ] && [ "$PG_COMPOSE_FILE" != "${COMPOSE_WORKING_DIR}/docker-compose.yaml" ]; then
                 PGADMIN_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
-                print_info "Found Docker Compose file: $PGADMIN_COMPOSE_FILE"
             fi
         fi
 
         # Shut down conflicting containers
         if [ ! -z "$PG_COMPOSE_FILE" ]; then
-            print_info "Shutting down containers from: $PG_COMPOSE_FILE"
+            print_info "Shutting down: $PG_CONFLICT"
             docker compose -f "$PG_COMPOSE_FILE" down
-            print_success "Successfully shut down containers from: $PG_COMPOSE_FILE"
         fi
 
         if [ ! -z "$PGADMIN_COMPOSE_FILE" ]; then
-            print_info "Shutting down containers from: $PGADMIN_COMPOSE_FILE"
+            print_info "Shutting down: $PGADMIN_CONFLICT"
             docker compose -f "$PGADMIN_COMPOSE_FILE" down
-            print_success "Successfully shut down containers from: $PGADMIN_COMPOSE_FILE"
         fi
 
         if [ -z "$PG_COMPOSE_FILE" ] && [ -z "$PGADMIN_COMPOSE_FILE" ]; then
-            print_success "No port conflicts detected or no Docker Compose files found for conflicting containers"
+            print_success "No port conflicts detected"
         else
-            print_success "Port conflicts resolved. You can now run 'pg start' to start your PostgreSQL containers"
+            print_success "Port conflicts resolved. Run 'pg start' to start PostgreSQL"
         fi
         ;;
     *)

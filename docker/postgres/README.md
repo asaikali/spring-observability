@@ -103,10 +103,10 @@ If you're connecting from another Docker container in the same network, use:
 
 The `pg` script includes built-in port conflict detection when starting containers. If ports 15432 (PostgreSQL) or 15433 (pgAdmin) are already in use by other containers, the script will:
 
-1. Detect the conflict and provide information about the conflicting containers
-2. Show which Docker Compose project and file is using the conflicting ports (if available)
-3. Provide direct commands to resolve the conflict without changing directories
-4. Suggest using the `pg fix` command to automatically resolve the conflict
+1. Detect the conflict and display a concise error message
+2. Show which containers are using the conflicting ports
+3. Provide a simple command to fix the issue (`pg fix`)
+4. Offer a direct Docker Compose command as an alternative
 
 Example output when a port conflict is detected:
 
@@ -114,40 +114,11 @@ Example output when a port conflict is detected:
 == Starting PostgreSQL Containers ==
 
 > Running docker compose up...
-✗ Failed to start PostgreSQL containers
-
--- Port Conflict Detection --
-
-> Checking for port conflicts...
-! Port conflict detected: Port 15432 is already in use by container: ai_postgres
-
--- PostgreSQL Container Details --
-
-CONTAINER ID   NAMES        IMAGE                  PORTS
-1e61ee68f163   ai_postgres  pgvector/pgvector:pg16 0.0.0.0:15432->5432/tcp
-> This container belongs to Docker Compose project: pgvector
-> Docker Compose file: /Users/adib/dev/asaikali/spring-ai-zero-to-hero/docker/pgvector/docker-compose.yaml
-
-! Port conflict detected: Port 15433 is already in use by container: ai_pgadmin
-
--- pgAdmin Container Details --
-
-CONTAINER ID   NAMES        IMAGE                   PORTS
-afd6e1e5033c   ai_pgadmin   dpage/pgadmin4:latest   443/tcp, 0.0.0.0:15433->80/tcp
-> This container belongs to Docker Compose project: pgvector
-> Docker Compose file: /Users/adib/dev/asaikali/spring-ai-zero-to-hero/docker/pgvector/docker-compose.yaml
-
--- Resolution Steps --
-
-> To resolve this conflict, you can either:
-  1. Stop the conflicting containers using 'docker stop <container_name>'
-  2. Modify the docker-compose.yaml file to use different ports
-
--- Docker Compose Shutdown Commands --
-
-> To shut down the conflicting PostgreSQL container using Docker Compose:
-  docker compose -f /Users/adib/dev/asaikali/spring-ai-zero-to-hero/docker/pgvector/docker-compose.yaml down
-> Or simply run: pg fix
+✗ Failed to start PostgreSQL containers - Port conflict detected
+! Port 15432 in use by: ai_postgres
+! Port 15433 in use by: ai_pgadmin
+> To fix, run: pg fix
+> Or run: docker compose -f /Users/adib/dev/asaikali/spring-ai-zero-to-hero/docker/pgvector/docker-compose.yaml down
 ```
 
 ### Using the Fix Command
@@ -158,10 +129,15 @@ The easiest way to resolve port conflicts is to use the `pg fix` command:
 ./pg fix
 ```
 
-This command will:
-1. Automatically detect containers causing port conflicts
-2. Find their associated Docker Compose files
-3. Shut them down directly without requiring you to change directories
-4. Provide feedback on the actions taken
+Example output:
 
-After running `pg fix`, you can then run `pg start` to start your PostgreSQL containers.
+```
+== Fixing Port Conflicts ==
+! Port 15432 in use by: ai_postgres
+! Port 15433 in use by: ai_pgadmin
+> Shutting down: ai_postgres
+> Shutting down: ai_pgadmin
+✓ Port conflicts resolved. Run 'pg start' to start PostgreSQL
+```
+
+This command automatically detects and shuts down conflicting containers without requiring you to change directories.
