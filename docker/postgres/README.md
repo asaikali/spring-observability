@@ -28,7 +28,7 @@ The `pg` script provides a simple interface to manage the PostgreSQL and pgAdmin
 The `pg` script supports the following commands:
 
 - `start`: Starts the PostgreSQL and pgAdmin containers in detached mode and displays their status.
-- `status`: Displays detailed container status in a tabular format and provides comprehensive connection information including ports, credentials, JDBC connection URL, and psql command for PostgreSQL and pgAdmin.
+- `status`: Displays container status in a tabular format and provides compact connection information including ports, credentials, JDBC connection URL, and psql command for PostgreSQL and pgAdmin.
 - `stop`: Stops the running containers.
 - `clean`: Stops the containers and removes all associated volumes, effectively cleaning up all data.
 - `fix`: Detects port conflicts and automatically shuts down conflicting containers, allowing you to start your PostgreSQL containers without changing directories.

@@ -138,7 +138,7 @@ case "$1" in
         # Start PostgreSQL and pgAdmin containers
         #
         print_header "Starting PostgreSQL Containers"
-        
+
         # Run docker compose up and capture the exit code
         print_info "Running docker compose up..."
         docker compose -f ${DOCKER_COMPOSE_FILE} up -d
@@ -172,7 +172,7 @@ case "$1" in
             exit $UP_EXIT_CODE
         fi
         ;;
-        
+
     stop)
         #
         # Stop PostgreSQL and pgAdmin containers
@@ -182,7 +182,7 @@ case "$1" in
         docker compose -f ${DOCKER_COMPOSE_FILE} down
         print_success "PostgreSQL containers stopped successfully"
         ;;
-        
+
     clean)
         #
         # Stop containers and remove volumes (clean up)
@@ -193,52 +193,44 @@ case "$1" in
         docker compose -f ${DOCKER_COMPOSE_FILE} down -v
         print_success "PostgreSQL containers and volumes cleaned successfully"
         ;;
-        
+
     status)
         #
-        # Display container status and connection information
+        # Display container status and connection information in a compact format
         #
         print_header "PostgreSQL Status"
-        print_section "Container Status"
-        docker compose -f ${DOCKER_COMPOSE_FILE} ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 
-        # Check if PostgreSQL container is running
+        # Get container status
+        CONTAINER_STATUS=$(docker compose -f ${DOCKER_COMPOSE_FILE} ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}")
+        echo "$CONTAINER_STATUS"
+
+        # Check container status
+        PG_RUNNING=false
+        PGADMIN_RUNNING=false
+
         if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "postgres"; then
-            print_success "PostgreSQL is running"
+            PG_RUNNING=true
+        fi
 
-            # Display PostgreSQL connection information
-            print_section "PostgreSQL Connection Information"
-            echo -e "${BOLD}Host:${NC}     ${DB_HOST}"
-            echo -e "${BOLD}Port:${NC}     ${PG_PORT}"
-            echo -e "${BOLD}Username:${NC} ${DB_USER}"
-            echo -e "${BOLD}Password:${NC} ${DB_PASSWORD}"
-            echo -e "${BOLD}Database:${NC} ${DB_NAME}"
+        if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "pgadmin"; then
+            PGADMIN_RUNNING=true
+        fi
 
-            # Display JDBC connection URL
-            print_section "JDBC Connection URL"
-            echo "jdbc:postgresql://${DB_HOST}:${PG_PORT}/${DB_NAME}"
-
-            # Display PSQL command
-            print_section "PSQL Command"
-            echo "PGPASSWORD=${DB_PASSWORD} psql -h ${DB_HOST} -p ${PG_PORT} -U ${DB_USER} -d ${DB_NAME}"
-
-            # Check if pgAdmin container is running
-            if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "pgadmin"; then
-                print_success "pgAdmin is running"
-
-                # Display pgAdmin connection information
-                print_section "pgAdmin Information"
-                echo -e "${BOLD}URL:${NC}      ${PGADMIN_URL}"
-                echo -e "${BOLD}Email:${NC}    ${PGADMIN_EMAIL}"
-                echo -e "${BOLD}Password:${NC} ${PGADMIN_PASSWORD}"
-            else
-                print_warning "pgAdmin is not running"
-            fi
+        # Display connection information in a compact format
+        if [ "$PG_RUNNING" = true ]; then
+            echo -e "\n${GREEN}✓${NC} ${BOLD}PG:${NC} ${DB_HOST}:${PG_PORT} | ${BOLD}User:${NC} ${DB_USER} | ${BOLD}Pass:${NC} ${DB_PASSWORD} | ${BOLD}DB:${NC} ${DB_NAME}"
+            echo -e "  ${BOLD}JDBC:${NC} jdbc:postgresql://${DB_HOST}:${PG_PORT}/${DB_NAME} | ${BOLD}PSQL:${NC} PGPASSWORD=${DB_PASSWORD} psql -h ${DB_HOST} -p ${PG_PORT} -U ${DB_USER} -d ${DB_NAME}"
         else
-            print_error "PostgreSQL is not running"
+            echo -e "\n${RED}✗${NC} PostgreSQL is not running"
+        fi
+
+        if [ "$PGADMIN_RUNNING" = true ]; then
+            echo -e "${GREEN}✓${NC} ${BOLD}pgAdmin:${NC} ${PGADMIN_URL} | ${BOLD}Email:${NC} ${PGADMIN_EMAIL} | ${BOLD}Pass:${NC} ${PGADMIN_PASSWORD}"
+        else
+            echo -e "${YELLOW}!${NC} pgAdmin is not running"
         fi
         ;;
-        
+
     fix)
         #
         # Detect and fix port conflicts
@@ -266,7 +258,7 @@ case "$1" in
             print_success "Port conflicts resolved. Run 'pg start' to start PostgreSQL"
         fi
         ;;
-        
+
     *)
         #
         # Handle unknown commands
