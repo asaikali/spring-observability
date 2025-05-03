@@ -94,3 +94,37 @@ If you're connecting from another Docker container in the same network, use:
 
 - The containers are configured to restart automatically unless explicitly stopped.
 - To completely reset the database and pgAdmin, use the `clean` command.
+
+## Port Conflict Detection
+
+The `pg` script includes built-in port conflict detection when starting containers. If ports 15432 (PostgreSQL) or 15433 (pgAdmin) are already in use by other containers, the script will:
+
+1. Detect the conflict and provide detailed information about the conflicting containers
+2. Show which Docker Compose project and file is using the conflicting ports (if available)
+3. Provide suggestions for resolving the conflict
+
+Example output when a port conflict is detected:
+
+```
+Starting PostgreSQL containers...
+Failed to start PostgreSQL containers. Checking for port conflicts...
+Port conflict detected: Port 15432 is already in use by container: ai_postgres
+Container details:
+CONTAINER ID   NAMES        IMAGE                  PORTS
+1e61ee68f163   ai_postgres  pgvector/pgvector:pg16 0.0.0.0:15432->5432/tcp
+This container belongs to Docker Compose project: pgvector
+Docker Compose file: /Users/adib/dev/asaikali/spring-ai-zero-to-hero/docker/pgvector/docker-compose.yaml
+
+Port conflict detected: Port 15433 is already in use by container: ai_pgadmin
+Container details:
+CONTAINER ID   NAMES        IMAGE                   PORTS
+afd6e1e5033c   ai_pgadmin   dpage/pgadmin4:latest   443/tcp, 0.0.0.0:15433->80/tcp
+This container belongs to Docker Compose project: pgvector
+Docker Compose file: /Users/adib/dev/asaikali/spring-ai-zero-to-hero/docker/pgvector/docker-compose.yaml
+
+To resolve this conflict, you can either:
+1. Stop the conflicting containers using 'docker stop <container_name>'
+2. Modify the docker-compose.yaml file to use different ports
+```
+
+This feature helps you identify which other Docker Compose projects might be causing port conflicts, making it easier to resolve issues when working with multiple projects.

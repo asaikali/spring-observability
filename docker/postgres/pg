@@ -18,9 +18,65 @@ fi
 case "$1" in
     start)
         echo "Starting PostgreSQL containers..."
+        # Run docker compose up and capture the exit code
         docker compose -f ${SCRIPT_DIR}/docker-compose.yaml up -d
-        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml \
-            ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+        UP_EXIT_CODE=$?
+
+        # Check if docker compose up was successful
+        if [ $UP_EXIT_CODE -eq 0 ]; then
+            docker compose -f ${SCRIPT_DIR}/docker-compose.yaml \
+                ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+        else
+           echo ""
+            echo "Failed to start PostgreSQL containers. Checking for port conflicts..."
+
+            # Check for containers using PostgreSQL port (15432)
+            PG_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15432")
+            if [ ! -z "$PG_CONFLICT" ]; then
+                echo "Port conflict detected: Port 15432 is already in use by container: $PG_CONFLICT"
+                echo "Container details:"
+                docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Ports}}" -f "publish=15432"
+
+                # Try to find the Docker Compose project for the conflicting container
+                COMPOSE_PROJECT=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project"}}')
+                if [ ! -z "$COMPOSE_PROJECT" ]; then
+                    echo "This container belongs to Docker Compose project: $COMPOSE_PROJECT"
+
+                    # Try to find the Docker Compose file
+                    COMPOSE_CONFIG=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.config_files"}}')
+                    if [ ! -z "$COMPOSE_CONFIG" ]; then
+                        echo "Docker Compose file: $COMPOSE_CONFIG"
+                    fi
+                fi
+            fi
+
+            # Check for containers using pgAdmin port (15433)
+            PGADMIN_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15433")
+            if [ ! -z "$PGADMIN_CONFLICT" ]; then
+                echo "Port conflict detected: Port 15433 is already in use by container: $PGADMIN_CONFLICT"
+                echo "Container details:"
+                docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Ports}}" -f "publish=15433"
+
+                # Try to find the Docker Compose project for the conflicting container
+                COMPOSE_PROJECT=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project"}}')
+                if [ ! -z "$COMPOSE_PROJECT" ]; then
+                    echo "This container belongs to Docker Compose project: $COMPOSE_PROJECT"
+
+                    # Try to find the Docker Compose file
+                    COMPOSE_CONFIG=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.config_files"}}')
+                    if [ ! -z "$COMPOSE_CONFIG" ]; then
+                        echo "Docker Compose file: $COMPOSE_CONFIG"
+                    fi
+                fi
+            fi
+
+            echo "To resolve this conflict, you can either:"
+            echo "1. Stop the conflicting containers using 'docker stop <container_name>'"
+            echo "2. Modify the docker-compose.yaml file to use different ports"
+
+            # Exit with the original error code
+            exit $UP_EXIT_CODE
+        fi
         ;;
     stop)
         echo "Stopping PostgreSQL containers..."
