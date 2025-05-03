@@ -25,162 +25,37 @@ The `pg` script provides a simple interface to manage the PostgreSQL and pgAdmin
 
 ## Script Commands
 
-The `pg` script supports the following commands:
-
-- `start`: Starts the PostgreSQL and pgAdmin containers in detached mode and displays their status.
-- `status`: Displays container status in a tabular format and provides compact connection information including ports, credentials, JDBC connection URL, and psql command for PostgreSQL and pgAdmin.
+- `start`: Starts the PostgreSQL and pgAdmin containers.
+- `status`: Shows container status and connection information.
 - `stop`: Stops the running containers.
-- `clean`: Stops the containers and removes all associated volumes, effectively cleaning up all data.
-- `fix`: Detects port conflicts and automatically shuts down conflicting containers, allowing you to start your PostgreSQL containers without changing directories.
+- `clean`: Stops the containers and removes all associated volumes.
+- `fix`: Detects and resolves port conflicts automatically.
 
 ## Services
 
 ### PostgreSQL
-
-- **Image**: postgres:17
-- **Port**: 15432 (mapped to container port 5432)
-- **Credentials**:
-  - Username: postgres
-  - Password: password
-- **Data**: Stored in a Docker volume named `postgres`
-- **Initialization**: The database is initialized with the SQL script at `./db/docker_postgres_init.sql`
+- Port: 15432
+- Username: postgres
+- Password: password
 
 ### pgAdmin
-
-- **Image**: dpage/pgadmin4:latest
-- **Port**: 15433 (mapped to container port 80)
-- **Web Interface**: http://localhost:15433
-- **Credentials**:
-  - Email: admin@example.com
-  - Password: admin
-- **Data**: Stored in a Docker volume named `pgadmin`
-- **Configuration**: Pre-configured with server connection details in `./db/docker_pgadmin_servers.json`
+- URL: http://localhost:15433
+- Email: admin@example.com
+- Password: admin
 
 ## Connecting to PostgreSQL
 
 ### From Host Machine
+- JDBC URL: `jdbc:postgresql://localhost:15432/postgres`
+- PSQL: `psql -h localhost -p 15432 -U postgres -d postgres`
 
-You can connect to PostgreSQL using any PostgreSQL client with these details:
-- Host: localhost
-- Port: 15432
-- Username: postgres
-- Password: password
-- Database: postgres
-
-For Java applications using JDBC, use the following connection URL:
-```
-jdbc:postgresql://localhost:15432/postgres
-```
-
-For command-line access using psql, use:
-```
-psql -h localhost -p 15432 -U postgres -d postgres
-```
-
-You can also run `./pg status` to view all connection details including the JDBC URL and psql command.
-
-### Using pgAdmin
-
-1. Start the containers with `./pg start`
-2. Open http://localhost:15433 in your browser to access pgAdmin
-3. Log in with email `admin@example.com` and password `admin`
-4. The PostgreSQL server should be pre-configured and available in the server list
-
-### From Docker Containers or Applications
-
-If you're connecting from another Docker container in the same network, use:
+### From Docker Containers
 - Host: postgres
 - Port: 5432
 - Username: postgres
 - Password: password
 
-## Configuration
-
-The PostgreSQL setup is configured with hardcoded values in the docker-compose.yaml file:
-
-- PostgreSQL image: postgres:17
-- PostgreSQL port: 15432
-- pgAdmin image: dpage/pgadmin4:9.3
-- pgAdmin port: 15433
-
-All other configuration values (usernames, passwords, etc.) are also hardcoded in the Docker Compose file.
-
-If you need to customize the configuration, you can edit the docker-compose.yaml file directly.
-
 ## Notes
-
-- The containers are configured to restart automatically unless explicitly stopped.
-- To completely reset the database and pgAdmin, use the `clean` command.
-- All configuration values are hardcoded in the docker-compose.yaml file for simplicity and clarity.
-- The script supports multiple Docker Compose file name variations: `docker-compose.yaml`, `docker-compose.yml`, `compose.yaml`, and `compose.yml`.
-- If no Docker Compose file is found in the script directory, an error message will be displayed.
-
-## Port Conflict Detection
-
-The `pg` script includes built-in port conflict detection when starting containers. If ports 15432 (PostgreSQL) or 15433 (pgAdmin) are already in use by other containers, the script will:
-
-1. Detect the conflict and display a concise error message
-2. Show which containers are using the conflicting ports
-3. Provide a simple command to fix the issue (`pg fix`)
-4. Offer direct commands to shut down the conflicting containers:
-   - Using Docker Compose if a compose file is found for the conflicting container
-   - Using `docker stop` if no compose file is found
-
-Example output when a port conflict is detected:
-
-```
-== Starting PostgreSQL Containers ==
-
-> Running docker compose up...
-✗ Failed to start PostgreSQL containers - Port conflict detected
-! Port 15432 in use by: ai_postgres
-! Port 15433 in use by: ai_pgadmin
-> To fix, run: pg fix
-> Or run: docker compose -f /Users/adib/dev/asaikali/spring-ai-zero-to-hero/docker/pgvector/docker-compose.yaml down
-```
-
-If no Docker Compose file is found for a conflicting container:
-
-```
-== Starting PostgreSQL Containers ==
-
-> Running docker compose up...
-✗ Failed to start PostgreSQL containers - Port conflict detected
-! Port 15432 in use by: some_postgres_container
-! No Docker Compose file found in /path/to/container/directory
-> To fix, run: pg fix
-> Or run: docker stop some_postgres_container
-```
-
-### Using the Fix Command
-
-The easiest way to resolve port conflicts is to use the `pg fix` command:
-
-```bash
-./pg fix
-```
-
-Example output when Docker Compose files are found:
-
-```
-== Fixing Port Conflicts ==
-! Port 15432 in use by: ai_postgres
-! Port 15433 in use by: ai_pgadmin
-> Shutting down: ai_postgres
-> Shutting down: ai_pgadmin
-✓ Port conflicts resolved. Run 'pg start' to start PostgreSQL
-```
-
-Example output when no Docker Compose files are found:
-
-```
-== Fixing Port Conflicts ==
-! Port 15432 in use by: some_postgres_container
-! No Docker Compose file found in /path/to/container/directory
-! Cannot shut down some_postgres_container automatically - no Docker Compose file found
-> Try manually with: docker stop some_postgres_container
-! Some port conflicts could not be automatically resolved
-> Please manually stop the conflicting containers or use different ports
-```
-
-This command automatically detects port conflicts and attempts to shut down conflicting containers. If Docker Compose files are found, it uses them to shut down the containers. If no Docker Compose files are found, it suggests manual commands to stop the containers.
+- Run `./pg status` to view all connection details.
+- The `fix` command helps resolve port conflicts automatically.
+- All configuration values are hardcoded in the docker-compose.yaml file.
