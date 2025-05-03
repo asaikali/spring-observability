@@ -11,9 +11,9 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
 # Docker Compose file path
 DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yaml"
-ENV_FILE="${SCRIPT_DIR}/pg-env"
+ENV_FILE="${SCRIPT_DIR}/pg.env"
 
-# Load environment variables from pg-env file if it exists
+# Load environment variables from pg.env file if it exists
 if [ -f "$ENV_FILE" ]; then
     echo "Loading configuration from ${ENV_FILE}"
     source "$ENV_FILE"
