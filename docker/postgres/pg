@@ -1,7 +1,35 @@
 #!/bin/bash
+#
+# PostgreSQL Container Manager Script
+# -----------------------------------
+# This script provides a simple interface to manage PostgreSQL and pgAdmin containers.
+# It supports starting, stopping, checking status, cleaning up, and fixing port conflicts.
+#
 
 # Get the directory of the current script
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
+
+# Docker Compose file path
+DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yaml"
+
+# Port configuration
+PG_PORT=15432
+PGADMIN_PORT=15433
+
+# Database connection details
+DB_HOST="localhost"
+DB_USER="postgres"
+DB_PASSWORD="password"
+DB_NAME="postgres"
+
+# pgAdmin connection details
+PGADMIN_URL="http://localhost:${PGADMIN_PORT}"
+PGADMIN_EMAIL="admin@example.com"
+PGADMIN_PASSWORD="admin"
+
+#
+# ===== FORMATTING FUNCTIONS =====
+#
 
 # Define color and formatting constants
 GREEN='\033[0;32m'
@@ -41,8 +69,12 @@ print_info() {
     echo -e "${BLUE}> $1${NC}"
 }
 
-# Check if a command was provided
-if [ $# -eq 0 ]; then
+#
+# ===== UTILITY FUNCTIONS =====
+#
+
+# Function to display usage information
+show_usage() {
     print_header "PostgreSQL Container Manager"
     echo -e "${BOLD}Usage:${NC} pg [command]"
     echo -e "\n${BOLD}Commands:${NC}"
@@ -51,56 +83,78 @@ if [ $# -eq 0 ]; then
     echo -e "  ${YELLOW}stop${NC}   - Stop PostgreSQL containers"
     echo -e "  ${RED}clean${NC}  - Stop PostgreSQL containers and remove volumes"
     echo -e "  ${YELLOW}fix${NC}    - Detect and fix port conflicts by shutting down conflicting containers"
+}
+
+# Function to detect port conflicts
+# Returns:
+#   PG_CONFLICT - Name of container using PostgreSQL port
+#   PG_COMPOSE_FILE - Path to Docker Compose file for PostgreSQL container
+#   PGADMIN_CONFLICT - Name of container using pgAdmin port
+#   PGADMIN_COMPOSE_FILE - Path to Docker Compose file for pgAdmin container
+detect_port_conflicts() {
+    # Check for containers using PostgreSQL port
+    PG_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=${PG_PORT}")
+    PG_COMPOSE_FILE=""
+
+    if [ ! -z "$PG_CONFLICT" ]; then
+        print_warning "Port ${PG_PORT} in use by: $PG_CONFLICT"
+
+        # Try to find the Docker Compose working directory
+        COMPOSE_WORKING_DIR=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
+        if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
+            PG_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
+        fi
+    fi
+
+    # Check for containers using pgAdmin port
+    PGADMIN_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=${PGADMIN_PORT}")
+    PGADMIN_COMPOSE_FILE=""
+
+    if [ ! -z "$PGADMIN_CONFLICT" ]; then
+        print_warning "Port ${PGADMIN_PORT} in use by: $PGADMIN_CONFLICT"
+
+        # Try to find the Docker Compose working directory
+        COMPOSE_WORKING_DIR=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
+        if [ ! -z "$COMPOSE_WORKING_DIR" ] && [ "$PG_COMPOSE_FILE" != "${COMPOSE_WORKING_DIR}/docker-compose.yaml" ]; then
+            PGADMIN_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
+        fi
+    fi
+}
+
+# Check if a command was provided
+if [ $# -eq 0 ]; then
+    show_usage
     exit 1
 fi
+
+#
+# ===== COMMAND HANDLERS =====
+#
 
 # Execute the appropriate command
 case "$1" in
     start)
+        #
+        # Start PostgreSQL and pgAdmin containers
+        #
         print_header "Starting PostgreSQL Containers"
+        
         # Run docker compose up and capture the exit code
         print_info "Running docker compose up..."
-        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml up -d
+        docker compose -f ${DOCKER_COMPOSE_FILE} up -d
         UP_EXIT_CODE=$?
 
         # Check if docker compose up was successful
         if [ $UP_EXIT_CODE -eq 0 ]; then
             print_success "PostgreSQL containers started successfully"
             print_section "Container Status"
-            docker compose -f ${SCRIPT_DIR}/docker-compose.yaml \
+            docker compose -f ${DOCKER_COMPOSE_FILE} \
                 ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
         else
             print_error "Failed to start PostgreSQL containers - Port conflict detected"
 
-            # Check for containers using PostgreSQL port (15432)
-            PG_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15432")
-            PG_COMPOSE_FILE=""
-
-            if [ ! -z "$PG_CONFLICT" ]; then
-                print_warning "Port 15432 in use by: $PG_CONFLICT"
-
-                # Try to find the Docker Compose working directory
-                COMPOSE_WORKING_DIR=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
-                if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
-                    PG_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
-                    PG_COMPOSE_WORKING_DIR="$COMPOSE_WORKING_DIR"
-                fi
-            fi
-
-            # Check for containers using pgAdmin port (15433)
-            PGADMIN_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15433")
-            PGADMIN_COMPOSE_FILE=""
-
-            if [ ! -z "$PGADMIN_CONFLICT" ]; then
-                print_warning "Port 15433 in use by: $PGADMIN_CONFLICT"
-
-                # Try to find the Docker Compose working directory
-                COMPOSE_WORKING_DIR=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
-                if [ ! -z "$COMPOSE_WORKING_DIR" ] && [ "$PG_COMPOSE_FILE" != "${COMPOSE_WORKING_DIR}/docker-compose.yaml" ]; then
-                    PGADMIN_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
-                    PGADMIN_COMPOSE_WORKING_DIR="$COMPOSE_WORKING_DIR"
-                fi
-            fi
+            # Detect which ports are in conflict
+            detect_port_conflicts
 
             # Show fix command
             print_info "To fix, run: ${BOLD}pg fix${NC}"
@@ -118,48 +172,65 @@ case "$1" in
             exit $UP_EXIT_CODE
         fi
         ;;
+        
     stop)
+        #
+        # Stop PostgreSQL and pgAdmin containers
+        #
         print_header "Stopping PostgreSQL Containers"
         print_info "Running docker compose down..."
-        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml down
+        docker compose -f ${DOCKER_COMPOSE_FILE} down
         print_success "PostgreSQL containers stopped successfully"
         ;;
+        
     clean)
+        #
+        # Stop containers and remove volumes (clean up)
+        #
         print_header "Cleaning PostgreSQL Containers and Volumes"
         print_warning "This will remove all data in the PostgreSQL volumes"
         print_info "Running docker compose down with volumes..."
-        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml down -v
+        docker compose -f ${DOCKER_COMPOSE_FILE} down -v
         print_success "PostgreSQL containers and volumes cleaned successfully"
         ;;
+        
     status)
+        #
+        # Display container status and connection information
+        #
         print_header "PostgreSQL Status"
         print_section "Container Status"
-        docker compose -f ${SCRIPT_DIR}/docker-compose.yaml ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+        docker compose -f ${DOCKER_COMPOSE_FILE} ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 
-        # Check if containers are running
-        if docker compose -f ${SCRIPT_DIR}/docker-compose.yaml ps --services --filter "status=running" | grep -q "postgres"; then
+        # Check if PostgreSQL container is running
+        if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "postgres"; then
             print_success "PostgreSQL is running"
 
+            # Display PostgreSQL connection information
             print_section "PostgreSQL Connection Information"
-            echo -e "${BOLD}Host:${NC}     localhost"
-            echo -e "${BOLD}Port:${NC}     15432"
-            echo -e "${BOLD}Username:${NC} postgres"
-            echo -e "${BOLD}Password:${NC} password"
-            echo -e "${BOLD}Database:${NC} postgres"
+            echo -e "${BOLD}Host:${NC}     ${DB_HOST}"
+            echo -e "${BOLD}Port:${NC}     ${PG_PORT}"
+            echo -e "${BOLD}Username:${NC} ${DB_USER}"
+            echo -e "${BOLD}Password:${NC} ${DB_PASSWORD}"
+            echo -e "${BOLD}Database:${NC} ${DB_NAME}"
 
+            # Display JDBC connection URL
             print_section "JDBC Connection URL"
-            echo "jdbc:postgresql://localhost:15432/postgres"
+            echo "jdbc:postgresql://${DB_HOST}:${PG_PORT}/${DB_NAME}"
 
+            # Display PSQL command
             print_section "PSQL Command"
-            echo "PGPASSWORD=password psql -h localhost -p 15432 -U postgres -d postgres"
+            echo "PGPASSWORD=${DB_PASSWORD} psql -h ${DB_HOST} -p ${PG_PORT} -U ${DB_USER} -d ${DB_NAME}"
 
-            if docker compose -f ${SCRIPT_DIR}/docker-compose.yaml ps --services --filter "status=running" | grep -q "pgadmin"; then
+            # Check if pgAdmin container is running
+            if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "pgadmin"; then
                 print_success "pgAdmin is running"
 
+                # Display pgAdmin connection information
                 print_section "pgAdmin Information"
-                echo -e "${BOLD}URL:${NC}      http://localhost:15433"
-                echo -e "${BOLD}Email:${NC}    admin@example.com"
-                echo -e "${BOLD}Password:${NC} admin"
+                echo -e "${BOLD}URL:${NC}      ${PGADMIN_URL}"
+                echo -e "${BOLD}Email:${NC}    ${PGADMIN_EMAIL}"
+                echo -e "${BOLD}Password:${NC} ${PGADMIN_PASSWORD}"
             else
                 print_warning "pgAdmin is not running"
             fi
@@ -167,32 +238,15 @@ case "$1" in
             print_error "PostgreSQL is not running"
         fi
         ;;
+        
     fix)
+        #
+        # Detect and fix port conflicts
+        #
         print_header "Fixing Port Conflicts"
 
-        # Check for containers using PostgreSQL port (15432)
-        PG_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15432")
-        PG_COMPOSE_FILE=""
-
-        if [ ! -z "$PG_CONFLICT" ]; then
-            print_warning "Port 15432 in use by: $PG_CONFLICT"
-            COMPOSE_WORKING_DIR=$(docker inspect $PG_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
-            if [ ! -z "$COMPOSE_WORKING_DIR" ]; then
-                PG_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
-            fi
-        fi
-
-        # Check for containers using pgAdmin port (15433)
-        PGADMIN_CONFLICT=$(docker ps --format "{{.Names}}" -f "publish=15433")
-        PGADMIN_COMPOSE_FILE=""
-
-        if [ ! -z "$PGADMIN_CONFLICT" ]; then
-            print_warning "Port 15433 in use by: $PGADMIN_CONFLICT"
-            COMPOSE_WORKING_DIR=$(docker inspect $PGADMIN_CONFLICT --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}')
-            if [ ! -z "$COMPOSE_WORKING_DIR" ] && [ "$PG_COMPOSE_FILE" != "${COMPOSE_WORKING_DIR}/docker-compose.yaml" ]; then
-                PGADMIN_COMPOSE_FILE="${COMPOSE_WORKING_DIR}/docker-compose.yaml"
-            fi
-        fi
+        # Detect which ports are in conflict
+        detect_port_conflicts
 
         # Shut down conflicting containers
         if [ ! -z "$PG_COMPOSE_FILE" ]; then
@@ -205,21 +259,20 @@ case "$1" in
             docker compose -f "$PGADMIN_COMPOSE_FILE" down
         fi
 
+        # Report results
         if [ -z "$PG_COMPOSE_FILE" ] && [ -z "$PGADMIN_COMPOSE_FILE" ]; then
             print_success "No port conflicts detected"
         else
             print_success "Port conflicts resolved. Run 'pg start' to start PostgreSQL"
         fi
         ;;
+        
     *)
+        #
+        # Handle unknown commands
+        #
         print_header "Unknown Command: $1"
-        echo -e "${BOLD}Usage:${NC} pg [command]"
-        echo -e "\n${BOLD}Commands:${NC}"
-        echo -e "  ${GREEN}start${NC}  - Start PostgreSQL containers"
-        echo -e "  ${BLUE}status${NC} - Check if PostgreSQL containers are running and display connection information"
-        echo -e "  ${YELLOW}stop${NC}   - Stop PostgreSQL containers"
-        echo -e "  ${RED}clean${NC}  - Stop PostgreSQL containers and remove volumes"
-        echo -e "  ${YELLOW}fix${NC}    - Detect and fix port conflicts by shutting down conflicting containers"
+        show_usage
         exit 1
         ;;
 esac
