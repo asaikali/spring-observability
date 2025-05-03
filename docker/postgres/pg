@@ -11,21 +11,28 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
 # Docker Compose file path
 DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yaml"
+ENV_FILE="${SCRIPT_DIR}/pg-env"
 
-# Port configuration
-PG_PORT=15432
-PGADMIN_PORT=15433
+# Load environment variables from pg-env file if it exists
+if [ -f "$ENV_FILE" ]; then
+    echo "Loading configuration from ${ENV_FILE}"
+    source "$ENV_FILE"
+fi
+
+# Port configuration (use environment variables or defaults)
+PG_PORT=${PG_PORT:-15432}
+PGADMIN_PORT=${PGADMIN_PORT:-15433}
 
 # Database connection details
 DB_HOST="localhost"
-DB_USER="postgres"
-DB_PASSWORD="password"
-DB_NAME="postgres"
+DB_USER=${PG_USER:-postgres}
+DB_PASSWORD=${PG_PASSWORD:-password}
+DB_NAME=${PG_DB:-postgres}
 
 # pgAdmin connection details
 PGADMIN_URL="http://localhost:${PGADMIN_PORT}"
-PGADMIN_EMAIL="admin@example.com"
-PGADMIN_PASSWORD="admin"
+PGADMIN_EMAIL=${PGADMIN_EMAIL:-admin@example.com}
+PGADMIN_PASSWORD=${PGADMIN_PASSWORD:-admin}
 
 #
 # ===== FORMATTING FUNCTIONS =====
@@ -141,7 +148,11 @@ case "$1" in
 
         # Run docker compose up and capture the exit code
         print_info "Running docker compose up..."
-        docker compose -f ${DOCKER_COMPOSE_FILE} up -d
+        if [ -f "$ENV_FILE" ]; then
+            docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up -d
+        else
+            docker compose -f ${DOCKER_COMPOSE_FILE} up -d
+        fi
         UP_EXIT_CODE=$?
 
         # Check if docker compose up was successful
@@ -179,7 +190,11 @@ case "$1" in
         #
         print_header "Stopping PostgreSQL Containers"
         print_info "Running docker compose down..."
-        docker compose -f ${DOCKER_COMPOSE_FILE} down
+        if [ -f "$ENV_FILE" ]; then
+            docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} down
+        else
+            docker compose -f ${DOCKER_COMPOSE_FILE} down
+        fi
         print_success "PostgreSQL containers stopped successfully"
         ;;
 
@@ -190,7 +205,11 @@ case "$1" in
         print_header "Cleaning PostgreSQL Containers and Volumes"
         print_warning "This will remove all data in the PostgreSQL volumes"
         print_info "Running docker compose down with volumes..."
-        docker compose -f ${DOCKER_COMPOSE_FILE} down -v
+        if [ -f "$ENV_FILE" ]; then
+            docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} down -v
+        else
+            docker compose -f ${DOCKER_COMPOSE_FILE} down -v
+        fi
         print_success "PostgreSQL containers and volumes cleaned successfully"
         ;;
 
@@ -201,19 +220,33 @@ case "$1" in
         print_header "PostgreSQL Status"
 
         # Get container status
-        CONTAINER_STATUS=$(docker compose -f ${DOCKER_COMPOSE_FILE} ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}")
+        if [ -f "$ENV_FILE" ]; then
+            CONTAINER_STATUS=$(docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}")
+        else
+            CONTAINER_STATUS=$(docker compose -f ${DOCKER_COMPOSE_FILE} ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}")
+        fi
         echo "$CONTAINER_STATUS"
 
         # Check container status
         PG_RUNNING=false
         PGADMIN_RUNNING=false
 
-        if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "postgres"; then
-            PG_RUNNING=true
-        fi
+        if [ -f "$ENV_FILE" ]; then
+            if docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} ps --services --filter "status=running" | grep -q "postgres"; then
+                PG_RUNNING=true
+            fi
 
-        if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "pgadmin"; then
-            PGADMIN_RUNNING=true
+            if docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} ps --services --filter "status=running" | grep -q "pgadmin"; then
+                PGADMIN_RUNNING=true
+            fi
+        else
+            if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "postgres"; then
+                PG_RUNNING=true
+            fi
+
+            if docker compose -f ${DOCKER_COMPOSE_FILE} ps --services --filter "status=running" | grep -q "pgadmin"; then
+                PGADMIN_RUNNING=true
+            fi
         fi
 
         # Display connection information in a compact format

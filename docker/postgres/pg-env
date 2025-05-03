@@ -1,0 +1,17 @@
+# PostgreSQL Environment Configuration
+# -----------------------------------
+# This file contains environment variables for the PostgreSQL and pgAdmin containers.
+# You can customize these values to override the defaults.
+
+# PostgreSQL Configuration
+PG_IMAGE=postgres:17
+PG_PORT=25432
+PG_USER=postgres
+PG_PASSWORD=password
+PG_DB=postgres
+
+# pgAdmin Configuration
+PGADMIN_IMAGE=dpage/pgadmin4:9.3
+PGADMIN_PORT=25433
+PGADMIN_EMAIL=admin@example.com
+PGADMIN_PASSWORD=admin

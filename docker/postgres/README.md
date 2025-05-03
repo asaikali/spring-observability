@@ -94,10 +94,51 @@ If you're connecting from another Docker container in the same network, use:
 - Username: postgres
 - Password: password
 
+## Customization
+
+The PostgreSQL setup can be customized by creating or modifying the `pg-env` file in the same directory as the `pg` script. This file allows you to override the default configuration values.
+
+### Default Configuration
+
+The default configuration is:
+
+```bash
+# PostgreSQL Configuration
+PG_IMAGE=postgres:17
+PG_PORT=15432
+PG_USER=postgres
+PG_PASSWORD=password
+PG_DB=postgres
+
+# pgAdmin Configuration
+PGADMIN_IMAGE=dpage/pgadmin4:latest
+PGADMIN_PORT=15433
+PGADMIN_EMAIL=admin@example.com
+PGADMIN_PASSWORD=admin
+```
+
+### Customizing the Configuration
+
+To customize the configuration:
+
+1. Create or edit the `pg-env` file in the same directory as the `pg` script
+2. Set the desired values for any of the variables
+3. Run the `pg` commands as usual
+
+Example `pg-env` file to change the PostgreSQL port and password:
+
+```bash
+PG_PORT=15434
+PG_PASSWORD=my_secure_password
+```
+
+When the `pg-env` file is present, the `pg` script will automatically use the values from the file instead of the defaults.
+
 ## Notes
 
 - The containers are configured to restart automatically unless explicitly stopped.
 - To completely reset the database and pgAdmin, use the `clean` command.
+- If the `pg-env` file is not present, the default values will be used.
 
 ## Port Conflict Detection
 
