@@ -47,6 +47,9 @@ case "$1" in
             echo "=== JDBC Connection URL ==="
             echo "jdbc:postgresql://localhost:15432/postgres"
             echo ""
+            echo "=== PSQL Command ==="
+            echo "PGPASSWORD=password psql -h localhost -p 15432 -U postgres -d postgres"
+            echo ""
 
             if docker compose -f ${SCRIPT_DIR}/docker-compose.yaml ps --services --filter "status=running" | grep -q "pgadmin"; then
                 echo "=== pgAdmin Information ==="
