@@ -218,14 +218,15 @@ case "$1" in
 
         # Display connection information in a compact format
         if [ "$PG_RUNNING" = true ]; then
-            echo -e "\n${GREEN}✓${NC} ${BOLD}PG:${NC} ${DB_HOST}:${PG_PORT} | ${BOLD}User:${NC} ${DB_USER} | ${BOLD}Pass:${NC} ${DB_PASSWORD} | ${BOLD}DB:${NC} ${DB_NAME}"
-            echo -e "  ${BOLD}JDBC:${NC} jdbc:postgresql://${DB_HOST}:${PG_PORT}/${DB_NAME} | ${BOLD}PSQL:${NC} PGPASSWORD=${DB_PASSWORD} psql -h ${DB_HOST} -p ${PG_PORT} -U ${DB_USER} -d ${DB_NAME}"
+            echo -e "\n${GREEN}✓${NC} ${BOLD}PG:${NC} ${DB_HOST}:${PG_PORT}  ${BOLD}User:${NC} ${DB_USER}  ${BOLD}Pass:${NC} ${DB_PASSWORD}  ${BOLD}DB:${NC} ${DB_NAME}"
+            echo -e "  ${BOLD}JDBC:${NC} jdbc:postgresql://${DB_HOST}:${PG_PORT}/${DB_NAME}"
+            echo -e "  ${BOLD}PSQL:${NC} PGPASSWORD=${DB_PASSWORD} psql -h ${DB_HOST} -p ${PG_PORT} -U ${DB_USER} -d ${DB_NAME}"
         else
             echo -e "\n${RED}✗${NC} PostgreSQL is not running"
         fi
 
         if [ "$PGADMIN_RUNNING" = true ]; then
-            echo -e "${GREEN}✓${NC} ${BOLD}pgAdmin:${NC} ${PGADMIN_URL} | ${BOLD}Email:${NC} ${PGADMIN_EMAIL} | ${BOLD}Pass:${NC} ${PGADMIN_PASSWORD}"
+            echo -e "${GREEN}✓${NC} ${BOLD}pgAdmin:${NC} ${PGADMIN_URL}"
         else
             echo -e "${YELLOW}!${NC} pgAdmin is not running"
         fi
