@@ -13,26 +13,39 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yaml"
 ENV_FILE="${SCRIPT_DIR}/pg.env"
 
-echo $ENV_FILE
+# Set default values for environment variables
+PG_IMAGE="postgres:17"
+PG_PORT="15432"
+PGADMIN_IMAGE="dpage/pgadmin4:9.3"
+PGADMIN_PORT="15433"
+
 # Check if the environment file exists
-if [ ! -f "$ENV_FILE" ]; then
-    echo -e "\033[0;31mError: Environment file ${ENV_FILE} not found.\033[0m"
-    echo -e "This file is required to run the PostgreSQL containers."
-    echo -e "Please create the file with the required environment variables."
-    echo -e "See README.md for more information."
-    exit 1
+if [ -f "$ENV_FILE" ]; then
+    echo "Loading configuration from ${ENV_FILE}"
+    source "$ENV_FILE"
+else
+    echo "Environment file ${ENV_FILE} not found. Using default values."
 fi
 
-# Load environment variables from pg.env file
-echo "Loading configuration from ${ENV_FILE}"
-source "$ENV_FILE"
+# Note: Environment variables are loaded from pg.env file if it exists, otherwise defaults are used.
+# They are passed to Docker Compose using the --env-file option if the file exists.
 
-# Note: Environment variables are loaded from pg.env file and passed to Docker Compose
-# using the --env-file option. No need to export them explicitly.
+# Function to generate docker-compose command with or without --env-file option
+# Usage: docker_compose_cmd [additional_args]
+docker_compose_cmd() {
+    if [ -f "$ENV_FILE" ]; then
+        docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} $@
+    else
+        # Export environment variables so Docker Compose can use them
+        export PG_IMAGE
+        export PG_PORT
+        export PGADMIN_IMAGE
+        export PGADMIN_PORT
+        docker compose -f ${DOCKER_COMPOSE_FILE} $@
+    fi
+}
 
-# Port configuration
-PG_PORT=${PG_PORT}
-PGADMIN_PORT=${PGADMIN_PORT}
+# Port configuration (already set above with defaults or from env file)
 
 # Database connection details
 DB_HOST="localhost"
@@ -159,15 +172,14 @@ case "$1" in
 
         # Run docker compose up and capture the exit code
         print_info "Running docker compose up..."
-        docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} up -d
+        docker_compose_cmd up -d
         UP_EXIT_CODE=$?
 
         # Check if docker compose up was successful
         if [ $UP_EXIT_CODE -eq 0 ]; then
             print_success "PostgreSQL containers started successfully"
             print_section "Container Status"
-            docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} \
-                ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+            docker_compose_cmd ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
         else
             print_error "Failed to start PostgreSQL containers - Port conflict detected"
 
@@ -197,7 +209,7 @@ case "$1" in
         #
         print_header "Stopping PostgreSQL Containers"
         print_info "Running docker compose down..."
-        docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} down
+        docker_compose_cmd down
         print_success "PostgreSQL containers stopped successfully"
         ;;
 
@@ -208,7 +220,7 @@ case "$1" in
         print_header "Cleaning PostgreSQL Containers and Volumes"
         print_warning "This will remove all data in the PostgreSQL volumes"
         print_info "Running docker compose down with volumes..."
-        docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} down -v
+        docker_compose_cmd down -v
         print_success "PostgreSQL containers and volumes cleaned successfully"
         ;;
 
@@ -219,18 +231,18 @@ case "$1" in
         print_header "PostgreSQL Status"
 
         # Get container status
-        CONTAINER_STATUS=$(docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}")
+        CONTAINER_STATUS=$(docker_compose_cmd ps --format "table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}")
         echo "$CONTAINER_STATUS"
 
         # Check container status
         PG_RUNNING=false
         PGADMIN_RUNNING=false
 
-        if docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} ps --services --filter "status=running" | grep -q "postgres"; then
+        if docker_compose_cmd ps --services --filter "status=running" | grep -q "postgres"; then
             PG_RUNNING=true
         fi
 
-        if docker compose -f ${DOCKER_COMPOSE_FILE} --env-file ${ENV_FILE} ps --services --filter "status=running" | grep -q "pgadmin"; then
+        if docker_compose_cmd ps --services --filter "status=running" | grep -q "pgadmin"; then
             PGADMIN_RUNNING=true
         fi
 

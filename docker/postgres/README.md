@@ -96,11 +96,9 @@ If you're connecting from another Docker container in the same network, use:
 
 ## Environment Configuration
 
-The PostgreSQL setup requires a `pg.env` file in the same directory as the `pg` script. This file contains all the necessary environment variables for the PostgreSQL and pgAdmin containers.
+The PostgreSQL setup can be customized using an optional `pg.env` file in the same directory as the `pg` script. This file contains environment variables for the PostgreSQL and pgAdmin containers.
 
-### Required Configuration
-
-The `pg.env` file must contain the following environment variables:
+The docker-compose.yaml file includes default values for all environment variables, so the `pg.env` file is completely optional. If the `pg.env` file doesn't exist, the following default values will be used:
 
 ```bash
 # PostgreSQL Configuration
@@ -108,11 +106,11 @@ PG_IMAGE=postgres:17
 PG_PORT=15432
 
 # pgAdmin Configuration
-PGADMIN_IMAGE=dpage/pgadmin4:latest
+PGADMIN_IMAGE=dpage/pgadmin4:9.3
 PGADMIN_PORT=15433
 ```
 
-Only these variables are required. All other configuration values (usernames, passwords, etc.) are hardcoded in the Docker Compose file.
+All other configuration values (usernames, passwords, etc.) are hardcoded in the Docker Compose file.
 
 ### Customizing the Configuration
 
@@ -140,7 +138,8 @@ Remember that only the image and port variables need to be defined in the `pg.en
 
 - The containers are configured to restart automatically unless explicitly stopped.
 - To completely reset the database and pgAdmin, use the `clean` command.
-- The `pg.env` file is required. If it's not present, the script will display an error message and exit.
+- The `pg.env` file is optional. If it's not present, the script will use default values.
+- The docker-compose.yaml file includes default values for all environment variables, so the setup will work even without a `pg.env` file.
 
 ## Port Conflict Detection
 
