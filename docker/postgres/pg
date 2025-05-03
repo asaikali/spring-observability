@@ -36,14 +36,14 @@ PGADMIN_PORT=${PGADMIN_PORT}
 
 # Database connection details
 DB_HOST="localhost"
-DB_USER=${PG_USER}
-DB_PASSWORD=${PG_PASSWORD}
-DB_NAME=${PG_DB}
+DB_USER="postgres"
+DB_PASSWORD="password"
+DB_NAME="postgres"
 
 # pgAdmin connection details
 PGADMIN_URL="http://localhost:${PGADMIN_PORT}"
-PGADMIN_EMAIL=${PGADMIN_EMAIL}
-PGADMIN_PASSWORD=${PGADMIN_PASSWORD}
+PGADMIN_EMAIL="admin@example.com"
+PGADMIN_PASSWORD="admin"
 
 #
 # ===== FORMATTING FUNCTIONS =====

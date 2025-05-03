@@ -106,18 +106,13 @@ The `pg.env` file must contain the following environment variables:
 # PostgreSQL Configuration
 PG_IMAGE=postgres:17
 PG_PORT=15432
-PG_USER=postgres
-PG_PASSWORD=password
-PG_DB=postgres
 
 # pgAdmin Configuration
 PGADMIN_IMAGE=dpage/pgadmin4:latest
 PGADMIN_PORT=15433
-PGADMIN_EMAIL=admin@example.com
-PGADMIN_PASSWORD=admin
 ```
 
-All of these variables are required. The Docker Compose file does not provide any default values.
+Only these variables are required. All other configuration values (usernames, passwords, etc.) are hardcoded in the Docker Compose file.
 
 ### Customizing the Configuration
 
@@ -127,24 +122,19 @@ To customize the configuration:
 2. Set the desired values for the variables
 3. Run the `pg` commands as usual
 
-Example of a customized `pg.env` file that changes the PostgreSQL port and password:
+Example of a customized `pg.env` file that changes the PostgreSQL image and port:
 
 ```bash
 # PostgreSQL Configuration
-PG_IMAGE=postgres:17
+PG_IMAGE=postgres:16
 PG_PORT=15434
-PG_USER=postgres
-PG_PASSWORD=my_secure_password
-PG_DB=postgres
 
 # pgAdmin Configuration
-PGADMIN_IMAGE=dpage/pgadmin4:latest
-PGADMIN_PORT=15433
-PGADMIN_EMAIL=admin@example.com
-PGADMIN_PASSWORD=admin
+PGADMIN_IMAGE=dpage/pgadmin4:9.3
+PGADMIN_PORT=15435
 ```
 
-Remember that all variables must be defined in the `pg.env` file.
+Remember that only the image and port variables need to be defined in the `pg.env` file. All other configuration values are hardcoded in the Docker Compose file.
 
 ## Notes
 
