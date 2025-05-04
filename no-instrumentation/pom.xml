@@ -13,6 +13,6 @@
 	<packaging>pom</packaging>
 	
 	<modules>
-		<module>micrometer-native</module>
+		<module>micrometer-native-monolith-ui-api-db</module>
 	</modules>
 </project>
