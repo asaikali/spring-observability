@@ -6,8 +6,8 @@ spring:
   jpa:
     open-in-view: false
   application:
-    name: monolith-ui-api-db # written to logs as service.name
-    group: micrometer-native # turns into a tag a way to group related microservices observations together
+    name: monolith-otel-monolith # written to logs as service.name
+    group: foo # turns into a tag a way to group related microservices observations together
     version: 1.0.0 # written to logs as service.version
 
 logging:
@@ -23,14 +23,13 @@ logging:
     format:
       # console: ecs
       file: ecs
-
+    level:
+      io:
+        opentelemetry:
+          exporter:
+            otlp: DEBUG
 
 management:
-  observations:
-    key-values:
-      "service.name" : "monolith-ui-api-db"
-      region: "us-east-1"
-      stack: "prod"
   endpoints:
     web:
       exposure:
@@ -38,6 +37,26 @@ management:
   endpoint:
     health:
       show-details: always
-
-
+  observations:
+    key-values:
+      key: "value"
+      location: "laptop"
+  tracing:
+    sampling:
+      probability: 1.0  # Always sample traces in dev
+    enabled: true
+  metrics:
+    tags:
+      foo: bar
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+      export:
+        enabled: true
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+        step: 5s
+        enabled: true
+        base-time-unit: seconds
 
