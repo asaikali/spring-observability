@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <groupId>com.example.no-instrumentation.micrometer-native</groupId>
-    <artifactId>monolith-ui-api-db</artifactId>
+    <artifactId>micrometer-native-monolith-ui-api-db</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <dependencies>
