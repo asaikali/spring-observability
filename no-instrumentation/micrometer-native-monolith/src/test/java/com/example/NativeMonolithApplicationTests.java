@@ -11,7 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class MonolithApiDbApplicationTests {
+class NativeMonolithApplicationTests {
 
   @Container @ServiceConnection
   public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:15");
