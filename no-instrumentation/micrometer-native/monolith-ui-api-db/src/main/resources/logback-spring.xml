@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+  <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+<!--  <include resource="org/springframework/boot/logging/logback/structured-console-appender.xml"/>-->
+
+  <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+    <http>
+      <url>http://localhost:3100/loki/api/v1/push</url>
+    </http>
+    <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder">
+      <format>${CONSOLE_LOG_STRUCTURED_FORMAT}</format>
+      <charset>${CONSOLE_LOG_CHARSET}</charset>
+    </encoder>
+
+<!--    <format>-->
+<!--      <label>-->
+<!--        <pattern>app=${name},host=${HOSTNAME},level=%level</pattern>-->
+<!--        <readMarkers>true</readMarkers>-->
+<!--      </label>-->
+<!--      <message>-->
+<!--        <pattern>-->
+<!--          {-->
+<!--          "level":"%level",-->
+<!--          "class":"%logger{36}",-->
+<!--          "thread":"%thread",-->
+<!--          "message": "%message",-->
+<!--          "requestId": "%X{X-Request-ID}"-->
+<!--          }-->
+<!--        </pattern>-->
+<!--      </message>-->
+<!--    </format>-->
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="LOKI" />
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>

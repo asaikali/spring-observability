@@ -1,5 +1,29 @@
-server:
-  port: 8080
+spring:
+  datasource:
+    url: "jdbc:postgresql://127.0.0.1:15432/quotes"
+    username: postgres
+    password: password
+  jpa:
+    open-in-view: false
+  application:
+    name: monolith-ui-api-db # written to logs as service.name
+    group: micrometer-native # turns into a tag a way to group related microservices observations together
+    version: 1.0.0 # written to logs as service.version
+
+logging:
+  file:
+    name: logs/monolith-ui-api-db.log
+  structured:
+    ecs:
+      service:
+        environment: dev # per service settings that land in the logs
+        node-name: laptop # per service setting that lands in the log
+        # name: not needed defaults to spring.application.name
+        # version: not needed maps to spring.application.version
+    format:
+      # console: ecs
+      file: ecs
+
 
 management:
   observations:
@@ -16,10 +40,4 @@ management:
       show-details: always
 
 
-spring:
-  datasource:
-    url: "jdbc:postgresql://127.0.0.1:15432/quotes"
-    username: postgres
-    password: password
-  jpa:
-    open-in-view: false
+

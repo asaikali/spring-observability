@@ -39,3 +39,5 @@ build/
 .gradle/
 test-results-native/
 .DS_Store
+
+*.log

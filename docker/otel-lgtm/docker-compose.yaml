@@ -1,0 +1,14 @@
+services:
+  otel-lgtm:
+    image: grafana/otel-lgtm:latest
+    container_name: otel-lgtm
+    ports:
+      - "3000:3000"    # Grafana UI
+      - "4317:4317"    # OTLP gRPC (Collector, still useful)
+      - "4318:4318"    # OTLP HTTP (Collector)
+      - "9090:9090"    # Prometheus (metrics scraping UI + API)
+      - "3100:3100"    # Loki (log ingestion & query)
+      - "3200:3200"    # Tempo (trace HTTP ingest & query)
+   # environment:
+    #  - ENABLE_LOGS_ALL=true
+    restart: unless-stopped

@@ -33,7 +33,6 @@
 
 services:
   prometheus:
-    container_name: prometheus
     image: prom/prometheus:v3.3.1
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -48,7 +47,6 @@ services:
       - "9090:9090" # Prometheus Web UI
 
   tempo:
-    container_name: tempo
     image: grafana/tempo:2.7.1
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -62,7 +60,6 @@ services:
       - "9411:9411"  # Zipkin-compatible endpoint
 
   loki:
-    container_name: loki
     image: grafana/loki:3.5.0
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -72,7 +69,6 @@ services:
       - "3100:3100"  # Loki Web UI and API
 
   grafana:
-    container_name: grafana
     image: grafana/grafana:11.6.1
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -89,7 +85,6 @@ services:
       - "3000:3000"  # Grafana Web UI
 
   maildev:
-    container_name: maildev
     image: maildev/maildev:2.2.1
     extra_hosts:
       - 'host.docker.internal:host-gateway'
