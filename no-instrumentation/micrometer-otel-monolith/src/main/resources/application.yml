@@ -12,7 +12,7 @@ spring:
 
 logging:
   file:
-    name: logs/micrometer-native-monolith.log
+    name: logs/micrometer-otel-monolith.log
   structured:
     ecs:
       service:

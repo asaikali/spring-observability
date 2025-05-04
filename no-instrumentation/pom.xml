@@ -14,5 +14,6 @@
 	
 	<modules>
 		<module>micrometer-native-monolith</module>
+		<module>micrometer-otel-monolith</module>
 	</modules>
 </project>
