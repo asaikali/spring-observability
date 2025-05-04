@@ -31,7 +31,129 @@
 # services can be easily accessed and customized for development and testing
 # scenarios.
 
+# Docker Compose File Overview:
+# -----------------------------
+# This Docker Compose file defines a multi-service stack focused on local on
+# laptop development with observability and email testing using Prometheus,
+# Grafana, Tempo, Loki, and MailDev. These services work together to provide
+# an environment to explore Micrometer and Spring observability capabilities.
+
+version: '3.8'
+
+# Docker Compose File Overview:
+# -----------------------------
+# This Docker Compose file defines a multi-service stack focused on local on
+# laptop development with observability and email testing using Prometheus,
+# Grafana, Tempo, Loki, and MailDev. These services work together to provide
+# an environment to explore Micrometer and Spring observability capabilities.
+
 services:
+  # ------------------------------------------------------------------------------
+  # MailDev is a simple email testing tool that provides a fake SMTP server
+  # and a web-based UI for viewing and debugging outgoing emails.
+  # It includes a built-in web UI at http://localhost:1080.
+  # Docs: https://github.com/maildev/maildev
+  # ------------------------------------------------------------------------------
+  maildev:
+    image: maildev/maildev:2.2.1
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    environment:
+      - MAILDEV_SMTP_PORT=1025
+      - MAILDEV_WEB_PORT=1080
+    ports:
+      - "1080:1080"    # MailDev Web UI
+      - "1025:1025"    # SMTP port
+
+  # ------------------------------------------------------------------------------
+  # Loki is a log aggregation system by Grafana Labs that indexes log metadata only,
+  # enabling efficient, cost-effective log storage and search. It pairs well with Grafana.
+  # Loki is API-only (no built-in UI); use Grafana to explore logs.
+  # Docs: https://grafana.com/oss/loki/
+  # ------------------------------------------------------------------------------
+  loki:
+    image: grafana/loki:3.5.0
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki:/loki
+    ports:
+      # Loki HTTP API — http://localhost:3100
+      # Accepts logs in Loki's native JSON push format
+      # Push logs to: POST http://localhost:3100/loki/api/v1/push
+      # Format reference: https://grafana.com/docs/loki/latest/api/#post-lokiapiv1push
+      - "3100:3100"
+
+  # ------------------------------------------------------------------------------
+  # Tempo is an open source, high-scale distributed tracing backend by Grafana Labs.
+  # It supports OTLP, Zipkin, and Jaeger protocols for ingesting traces.
+  # Tempo is API-only (no built-in UI); use Grafana to view traces.
+  # Docs: https://grafana.com/oss/tempo/
+  # ------------------------------------------------------------------------------
+  tempo:
+    image: grafana/tempo:2.7.1
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    command:
+      - -config.file=/etc/tempo.yml
+    volumes:
+      - tempo:/tmp/tempo
+      - ./tempo/tempo.yml:/etc/tempo.yml:ro
+      # - tempo:/tmp/tempo
+      - ./tempo/tempo.yml:/etc/tempo.yml:ro
+    ports:
+      # Tempo HTTP ingestion — http://localhost:3200
+      # Push OTLP traces to: POST http://localhost:3200/v1/traces
+      - "3200:3200"
+
+      # Zipkin-compatible ingestion — http://localhost:9412/api/v2/spans
+      - "9412:9411"  # Remap container port 9411 to 9412 on host (conflict with otel-collector)
+
+      # Optional OTLP gRPC ingestion — http://localhost:4319
+      - "4319:4317"  # Remap to avoid conflict with otel-collector
+
+  # ------------------------------------------------------------------------------
+  # OpenTelemetry Collector receives, processes, and exports telemetry data
+  # (traces, metrics, logs) from applications and infrastructure.
+  # This setup uses the "contrib" distribution, which includes the core features
+  # plus a wide set of community-supported receivers/exporters (e.g., Loki, AWS, Kafka).
+  # The "core" distribution is slimmer but limited to officially maintained components.
+  # The Collector does not have a UI — it functions entirely through API endpoints.
+  # Docs: https://opentelemetry.io/docs/collector/
+  # ------------------------------------------------------------------------------
+  otel-collector:
+    container_name: otel-collector
+    # The contrib collector is a superset of the core collector useful for
+    # exporting to cloud provider services.
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.125.0
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel/config.yaml
+    command:
+      - "--config=/etc/otel/config.yaml"
+    ports:
+      # OTLP gRPC receiver — http://localhost:4317
+      # Accepts: spans, metrics, and logs
+      - "4317:4317"
+
+      # OTLP HTTP receiver — http://localhost:4318
+      # Accepts:
+      #   - Traces:  POST http://localhost:4318/v1/traces
+      #   - Metrics: POST http://localhost:4318/v1/metrics
+      #   - Logs:    POST http://localhost:4318/v1/logs
+      - "4318:4318"
+
+      # Zipkin receiver — http://localhost:9411/api/v2/spans
+      # Accepts: spans only
+      - "9411:9411"
+
+  # ------------------------------------------------------------------------------
+  # Prometheus is an open source systems monitoring and alerting toolkit.
+  # It scrapes metrics from instrumented services and stores them in a time-series database.
+  # It includes a built-in web UI at http://localhost:9090 for query and debugging.
+  # Docs: https://prometheus.io
+  # ------------------------------------------------------------------------------
   prometheus:
     image: prom/prometheus:v3.3.1
     extra_hosts:
@@ -46,28 +168,12 @@ services:
     ports:
       - "9090:9090" # Prometheus Web UI
 
-  tempo:
-    image: grafana/tempo:2.7.1
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    command:
-      - -config.file=/etc/tempo.yml
-    volumes:
-    #  - tempo:/tmp/tempo
-      - ./tempo/tempo.yml:/etc/tempo.yml:ro
-    ports:
-      - "3200:3200"  # Tempo push endpoint
-      - "9411:9411"  # Zipkin-compatible endpoint
-
-  loki:
-    image: grafana/loki:3.5.0
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    command:
-      - -config.file=/etc/loki/local-config.yaml
-    ports:
-      - "3100:3100"  # Loki Web UI and API
-
+  # ------------------------------------------------------------------------------
+  # Grafana is an open source analytics and monitoring platform.
+  # It connects to data sources like Prometheus, Tempo, and Loki to visualize
+  # metrics, traces, and logs. It includes a rich web UI at http://localhost:3000.
+  # Docs: https://grafana.com/oss/grafana/
+  # ------------------------------------------------------------------------------
   grafana:
     image: grafana/grafana:11.6.1
     extra_hosts:
@@ -84,18 +190,8 @@ services:
     ports:
       - "3000:3000"  # Grafana Web UI
 
-  maildev:
-    image: maildev/maildev:2.2.1
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    environment:
-      - MAILDEV_SMTP_PORT=1025
-      - MAILDEV_WEB_PORT=1080
-    ports:
-      - "1080:1080"    # MailDev Web UI
-      - "1025:1025"      # SMTP port
-
-
 volumes:
+  grafana:
+  loki:
   prometheus:
   tempo:

@@ -1,0 +1,43 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889" # Prometheus will scrape here
+
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    # optional: labels or resource attributes can be configured
+    labels:
+      resource:
+        service.name: "service"
+    tls:
+      insecure: true
+
+  otlp/tempo:
+    endpoint: tempo:4317 #gRPC endpoint
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [loki]
+
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo]
