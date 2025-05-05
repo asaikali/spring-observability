@@ -158,7 +158,45 @@ In this setup, **Grafana** serves as the central observability UI. It connects t
 
 This architecture cleanly separates signal production (inside the app) from signal routing and storage (via the collector), while using modern, vendor-neutral OTLP protocols end to end.
 
-## Export formats: otel traces, Loki logs, Prometheus metrics
+### Architecture 
+```text
+   +-----------------------------------------------------------+
+   |                  Spring Boot App                          |
+   |  Micrometer otel metrics registry                         |
+   |  Micrometer otel tracing bridge                      |
+   |  OpenTelemetry logback appender                           |
+   +-----------------------------------------------------------+
+          |                   |                     |
+POST :4318/v1/traces          |           POST :4318/v1/metrics
+          |                   |                     |
+          |         POST :4318/v1/logs              |
+          ↓                   ↓                     ↓
+      +----------------------------------------------------+
+      |            OpenTelemetry Collector                 |
+      |   OTLP HTTP :4318           OTLP gRPC :4317        |
+      +----------------------------------------------------+
+          |                   |                     ↑
+    POST :3200/v1/traces      |          GET /actuator/prometheus
+          |                   |                     |
+          |         POST /loki/api/v1/push          |
+          ↓                   ↓                     |
++--------------------+ +--------------------+ +--------------------+
+|       Tempo        | |        Loki        | |    Prometheus      |
+|      3200 HTTP     | |      3100 HTTP     | |    9090 HTTP       |
++--------------------+ +--------------------+ +--------------------+
+          ↑                   ↑                     ↑
+          |                   |                     |
+          |                   |                     |
+      +------------------------------------------------------------+
+      |                         Grafana                            |
+      |                      (3000 Web UI)                         |
+      |  - Queries metrics from Prometheus                         |
+      |  - Queries logs from Loki                                  |
+      |  - Queries traces from Tempo                               |
+      +------------------------------------------------------------+
+```
+
+### dependencies 
 
 ```xml
 
@@ -211,76 +249,7 @@ This architecture cleanly separates signal production (inside the app) from sign
 </dependencies>
 ```
 
-```text
-
-   +-----------------------------------------------------------+
-   |                  Spring Boot App                          |
-   |  Micrometer prometheus metrics registry                   |
-   |  Micrometer otel brave tracing bridge                     |
-   |  Loki logback appender                                    |
-   +-----------------------------------------------------------+
-          |                   |                     ↑
-POST :3200/v1/traces          |           GET /actuator/prometheus
-          |                   |                     |
-          |        POST /loki/api/v1/push           |
-          ↓                   ↓                     |
-+--------------------+ +--------------------+ +--------------------+
-|       Tempo        | |        Loki        | |    Prometheus      |
-|  3200 HTTP OTLP    | |      3100 HTTP     | |    9090 HTTP       |
-+--------------------+ +--------------------+ +--------------------+
-          ↑                   ↑                     ↑
-          |                   |                     |
-          |                   |                     |
-      +------------------------------------------------------------+
-      |                         Grafana                            |
-      |                      (3000 Web UI)                         |
-      |  - Queries metrics from Prometheus                         |
-      |  - Queries logs from Loki                                  |
-      |  - Queries traces from Tempo                               |
-      +------------------------------------------------------------+
-```
-
-### Export formats: otel traces, otel logs, otel metrics
-
-```text
-   +-----------------------------------------------------------+
-   |                  Spring Boot App                          |
-   |  Micrometer otel metrics registry                         |
-   |  Micrometer otel otel tracing bridge                      |
-   |  OpenTelemetry logback appender                           |
-   +-----------------------------------------------------------+
-          |                   |                     |
-POST :4318/v1/traces          |           POST :4318/v1/metrics
-          |                   |                     |
-          |         POST :4318/v1/logs              |
-          ↓                   ↓                     ↓
-      +----------------------------------------------------+
-      |            OpenTelemetry Collector                 |
-      |   OTLP HTTP :4318           OTLP gRPC :4317        |
-      +----------------------------------------------------+
-          |                   |                     ↑
-    POST :3200/v1/traces      |          GET /actuator/prometheus
-          |                   |                     |
-          |         POST /loki/api/v1/push          |
-          ↓                   ↓                     |
-+--------------------+ +--------------------+ +--------------------+
-|       Tempo        | |        Loki        | |    Prometheus      |
-|      3200 HTTP     | |      3100 HTTP     | |    9090 HTTP       |
-+--------------------+ +--------------------+ +--------------------+
-          ↑                   ↑                     ↑
-          |                   |                     |
-          |                   |                     |
-      +------------------------------------------------------------+
-      |                         Grafana                            |
-      |                      (3000 Web UI)                         |
-      |  - Queries metrics from Prometheus                         |
-      |  - Queries logs from Loki                                  |
-      |  - Queries traces from Tempo                               |
-      +------------------------------------------------------------+
-```
-
-
-
+## otel collector can be configured with a zipkin listener 
 ```text
       +----------------------------------------------------+
       |                  Spring Boot App                   |

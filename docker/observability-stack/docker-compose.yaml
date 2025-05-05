@@ -31,22 +31,6 @@
 # services can be easily accessed and customized for development and testing
 # scenarios.
 
-# Docker Compose File Overview:
-# -----------------------------
-# This Docker Compose file defines a multi-service stack focused on local on
-# laptop development with observability and email testing using Prometheus,
-# Grafana, Tempo, Loki, and MailDev. These services work together to provide
-# an environment to explore Micrometer and Spring observability capabilities.
-
-version: '3.8'
-
-# Docker Compose File Overview:
-# -----------------------------
-# This Docker Compose file defines a multi-service stack focused on local on
-# laptop development with observability and email testing using Prometheus,
-# Grafana, Tempo, Loki, and MailDev. These services work together to provide
-# an environment to explore Micrometer and Spring observability capabilities.
-
 services:
   # ------------------------------------------------------------------------------
   # MailDev is a simple email testing tool that provides a fake SMTP server
