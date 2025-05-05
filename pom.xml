@@ -20,6 +20,7 @@
         <spotless.version>2.44.4</spotless.version>
     </properties>
     <modules>
+        <module>components</module>
         <module>observation-api-instrumentation</module>
         <module>otel-sdk-instrumentation</module>
         <module>no-instrumentation</module>
