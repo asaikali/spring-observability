@@ -31,11 +31,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
@@ -44,14 +39,65 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- observability dependencies -->
+        <!--
+   Enables Spring Boot Actuator endpoints like:
+   - /actuator/health
+   - /actuator/prometheus (for Prometheus metrics scraping)
+   Required for Micrometer and Micrometer Tracing auto-configuration.
+   Without this, observability features like metrics and tracing will not activate.
+ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!--
+          Registers Prometheus as the Micrometer backend.
+          Exposes all metrics in Prometheus-compatible format at:
+          - GET /actuator/prometheus
+          Prometheus scrapes this endpoint at intervals.
+        -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+
+        <!--
+          Micrometer Tracing bridge for Brave (Zipkin).
+          This provides the integration layer between Micrometer's tracing API
+          and Brave's implementation of span creation, context propagation, etc.
+        -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+
+        <!--
+          Required by Brave to send spans to a Zipkin-compatible backend (e.g., Tempo).
+          Sends spans via HTTP to:
+          - POST http://localhost:9411/api/v2/spans
+          Tempo must be running with Zipkin compatibility enabled.
+        -->
+        <dependency>
+            <groupId>io.zipkin.reporter2</groupId>
+            <artifactId>zipkin-reporter-brave</artifactId>
+        </dependency>
+
+        <!--
+          Loki Logback Appender for structured log shipping.
+          - Formats logs into Loki's expected JSON push format
+          - Sends via HTTP POST to /loki/api/v1/push
+          Used with Spring Boot’s default Logback setup.
+        -->
         <dependency>
             <groupId>com.github.loki4j</groupId>
             <artifactId>loki-logback-appender</artifactId>
+            <version>1.6.0</version> <!-- Check for latest version -->
+        </dependency>
+
+        <dependency>
+            <groupId>net.ttddyy.observation</groupId>
+            <artifactId>datasource-micrometer-spring-boot</artifactId>
         </dependency>
 
         <!-- Test dependencies -->

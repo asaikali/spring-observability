@@ -77,26 +77,19 @@ services:
   # Docs: https://grafana.com/oss/tempo/
   # ------------------------------------------------------------------------------
   tempo:
-    image: grafana/tempo:2.7.1
+    image: grafana/tempo:2.7.2
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     command:
-      - -config.file=/etc/tempo.yml
+      - -config.file=/etc/tempo.yaml
     volumes:
-      - tempo:/tmp/tempo
-      - ./tempo/tempo.yml:/etc/tempo.yml:ro
-      # - tempo:/tmp/tempo
-      - ./tempo/tempo.yml:/etc/tempo.yml:ro
+      - ./config/tempo.yaml:/etc/tempo.yaml:ro
     ports:
-      # Tempo HTTP ingestion — http://localhost:3200
       # Push OTLP traces to: POST http://localhost:3200/v1/traces
       - "3200:3200"
 
-      # Zipkin-compatible ingestion — http://localhost:9412/api/v2/spans
-      - "9412:9411"  # Remap container port 9411 to 9412 on host (conflict with otel-collector)
-
-      # Optional OTLP gRPC ingestion — http://localhost:4319
-      - "4319:4317"  # Remap to avoid conflict with otel-collector
+      # Push Zipkin traces — POST http://localhost:9411/api/v2/spans
+      - "9411:9411"  #
 
   # ------------------------------------------------------------------------------
   # OpenTelemetry Collector receives, processes, and exports telemetry data
@@ -113,7 +106,7 @@ services:
     # exporting to cloud provider services.
     image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.125.0
     volumes:
-      - ./otel/otel-collector-config.yaml:/etc/otel/config.yaml
+      - ./config/otel-collector.yaml:/etc/otel/config.yaml
     command:
       - "--config=/etc/otel/config.yaml"
     ports:
@@ -130,7 +123,7 @@ services:
 
       # Zipkin receiver — http://localhost:9411/api/v2/spans
       # Accepts: spans only
-      - "9411:9411"
+      # - "9411:9411"
 
   # ------------------------------------------------------------------------------
   # Prometheus is an open source systems monitoring and alerting toolkit.
@@ -145,10 +138,10 @@ services:
     command:
       - --enable-feature=exemplar-storage
       - --web.enable-remote-write-receiver
-      - --config.file=/etc/prometheus/prometheus.yml
+      - --config.file=/etc/prometheus/prometheus.yaml
     volumes:
       - prometheus:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
     ports:
       - "9090:9090" # Prometheus Web UI
 
@@ -175,7 +168,6 @@ services:
       - "3000:3000"  # Grafana Web UI
 
 volumes:
-  grafana:
   loki:
   prometheus:
-  tempo:
+
