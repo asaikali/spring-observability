@@ -19,7 +19,9 @@ public class QuoteController {
   private final Environment environment;
   private final ObservationRegistry observationRegistry;
 
-  public QuoteController(QuoteRepository quoteRepository, Environment environment,
+  public QuoteController(
+      QuoteRepository quoteRepository,
+      Environment environment,
       ObservationRegistry observationRegistry) {
     this.quoteRepository = quoteRepository;
     this.environment = environment;
@@ -30,16 +32,17 @@ public class QuoteController {
   public Quote randomQuote() {
     Observation observation = Observation.createNotStarted("quote", this.observationRegistry);
     observation.lowCardinalityKeyValue("foo", "bar");
-    return observation.observe(() -> {
-      Quote result = quoteRepository.findRandomQuote();
-      CloudPlatform platform = CloudPlatform.getActive(environment);
-      if (platform != null) {
-        result.setPlatform(platform.name());
-        MDC.put("platform", result.getPlatform());
-      }
+    return observation.observe(
+        () -> {
+          Quote result = quoteRepository.findRandomQuote();
+          CloudPlatform platform = CloudPlatform.getActive(environment);
+          if (platform != null) {
+            result.setPlatform(platform.name());
+            MDC.put("platform", result.getPlatform());
+          }
 
-      log.info("Random quote generated");
-      return result;
-    });
+          log.info("Random quote generated");
+          return result;
+        });
   }
 }

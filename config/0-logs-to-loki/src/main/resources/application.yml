@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: logs-to-loki
+    group: config
+    version: 1.0.0
+
+logging:
+  structured:
+    ecs:
+      service:
+        environment: dev # per service settings that land in the logs
+        node-name: laptop # per service setting that lands in the log
+        # name: not needed defaults to spring.application.name
+        # version: not needed maps to spring.application.version
+    format:
+       console: ecs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always

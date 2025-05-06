@@ -7,11 +7,12 @@
 		<artifactId>spring-observability</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>com.example.otel</groupId>
-	<artifactId>components</artifactId>
+	<groupId>com.example</groupId>
+	<artifactId>config</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<modules>
+		<module>0-logs-to-loki</module>
 	</modules>
 </project>
