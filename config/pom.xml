@@ -14,5 +14,6 @@
 	
 	<modules>
 		<module>0-logs-to-loki</module>
+		<module>1-logs-to-otel</module>
 	</modules>
 </project>

@@ -1,6 +1,7 @@
 # logs-to-loki
 
-This sample application demonstrates how to export logs from a Spring Boot application to **Loki**.
+This sample application demonstrates how to export logs from a Spring Boot application to Loki using 
+the native Loki ingestion endpoint. 
 
 ## Exporting Logs to Loki from Spring Boot
 
@@ -150,3 +151,45 @@ In practice many teams:
 > *Need lightning‑fast, low‑cost operational logs?* → **Loki**.  
 > *Need Google‑like search on every JSON field?* → **ELK / Splunk**.  
 > *Need to keep logs for years as cheap as possible?* → **S3 + Athena**.
+
+---
+##  Native “On‑the‑Wire” Format Loki Expects
+
+Loki’s `/loki/api/v1/push` endpoint accepts a single **JSON document** shaped like this:
+
+```json
+{
+  "streams": [
+    {
+      "stream": {
+        "app": "logs-to-loki",
+        "level": "INFO",
+        "env": "dev"
+      },
+      "values": [
+        [
+          "1715000000123456789",
+          "2025-05-06T12:00:00.123-04:00  INFO  Started application"
+        ],
+        [
+          "1715000001123456789",
+          "2025-05-06T12:00:01.123-04:00  INFO  GET /quotes -> 200"
+        ]
+      ]
+    }
+  ]
+}
+```
+- **`stream`** – a flat map of **labels** (key = string, value = string).  
+  Loki indexes these so queries like `{app="logs-to-loki", level="INFO"}` are lightning‑fast.
+
+- **`values`** – an array of 2‑element arrays:  
+  `["<timestamp‑ns>", "<log line>"]`
+  - **Timestamp** must be a string representing **nanoseconds since the Unix epoch**  
+    (Loki’s preferred precision).
+  - **Log line** is stored as an *opaque* string – Loki doesn’t parse it at ingest.
+
+Each distinct label set (`app`, `env`, `level`, …) forms its own **stream**.  
+Clients such as *Loki4j*, *Promtail*, *Fluent Bit*, or the *OpenTelemetry Collector* batch log lines into this structure before sending them over HTTP.
+
+

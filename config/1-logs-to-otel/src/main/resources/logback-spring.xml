@@ -20,7 +20,7 @@
   <springProperty scope="context" name="node" source="logging.structured.ecs.service.node-name"/>
 
   <!-- Loki URL -->
-  <springProperty name="OTEL_URL" source="otel.url" defaultValue="http://localhost:3100"/>
+  <springProperty name="LOKI_URL" source="loki.url" defaultValue="http://localhost:4318"/>
 
   <!-- ========================================================================= -->
   <!-- 3. Configure Batching Behavior for Loki Logs                             -->
@@ -31,31 +31,12 @@
   </batch>
 
   <!-- ========================================================================= -->
-  <!-- 4. Loki4j Appender Configuration                                         -->
+  <!-- 4. Otel Appender Configuration                                         -->
   <!-- ========================================================================= -->
-  <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
-    <http>
-      <url>${LOKI_URL}/loki/api/v1/push</url>
-    </http>
-    <format>
-      <label>
-        <!-- Labels for fast filtering in Loki/Grafana -->
-        <pattern>
-          app=${appName},
-          group=${appGroup},
-          version=${appVersion},
-          env=${env},
-          node=${node},
-          host=${HOSTNAME},
-          level=%level
-        </pattern>
-      </label>
-      <message>
-        <!-- Reuse Spring Boot's default FILE_LOG_PATTERN -->
-        <pattern>${FILE_LOG_PATTERN}</pattern>
-      </message>
-      <sortByTime>true</sortByTime>
-    </format>
+  <appender name="OpenTelemetry"
+    class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    <captureExperimentalAttributes>true</captureExperimentalAttributes>
+    <captureMdcAttributes>*</captureMdcAttributes>
   </appender>
 
   <!-- ========================================================================= -->
@@ -63,7 +44,7 @@
   <!-- ========================================================================= -->
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
-    <appender-ref ref="LOKI"/>
+    <appender-ref ref="OpenTelemetry"/>
   </root>
 
 </configuration>

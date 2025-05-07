@@ -1,6 +1,6 @@
 spring:
   application:
-    name: logs-to-loki
+    name: logs-to-otel
     group: config
     version: 1.0.0
 
@@ -23,8 +23,3 @@ management:
   endpoint:
     health:
       show-details: always
-
-# used in the logback-spring.xml configuration this, this is key is not
-# part of spring but rather a convention of this sample application.
-loki:
-  url: "http://localhost:3100"

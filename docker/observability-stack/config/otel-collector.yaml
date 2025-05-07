@@ -8,6 +8,16 @@ receivers:
 
 processors:
   batch:
+  transform:
+    log_statements:
+      - context: log
+        statements:
+          - parse_json(body)
+          - set(attributes["service.name"], body["service.name"])
+          - set(attributes["log.level"], body["log.level"])
+          - set(attributes["trace_id"], body["trace.id"])
+
+
 
 exporters:
   prometheus:
@@ -32,7 +42,7 @@ service:
       exporters: [prometheus]
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: [transform]
       exporters: [loki]
     traces:
       receivers: [otlp]
