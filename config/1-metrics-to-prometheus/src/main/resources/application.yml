@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: metrics-to-prometheus
+    group: config
+    version: 1.0.0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    # the tags below are added automatically to the all metrics exported
+    # to prometheus
+    tags:
+      service_name: ${spring.application.name}
+      service_group: ${spring.application.config}
+      service_version: ${spring.application.version}

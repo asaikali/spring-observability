@@ -14,6 +14,6 @@
 	
 	<modules>
 		<module>0-logs-to-loki</module>
-		<module>1-logs-to-otel</module>
+		<module>1-metrics-to-prometheus</module>
 	</modules>
 </project>

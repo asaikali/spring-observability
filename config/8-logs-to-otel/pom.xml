@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>com.example.config</groupId>
-  <artifactId>0-logs-to-loki</artifactId>
+  <artifactId>4-logs-to-otel</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
   <dependencies>
@@ -44,7 +44,7 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- observability dependencies -->
+    <!-- observability depenedncies -->
     <!--
       Enables Spring Boot Actuator endpoints like:
       - /actuator/health
@@ -57,15 +57,15 @@
     </dependency>
 
     <!--
-      Loki Logback Appender for structured log shipping.
-      - Formats logs into Loki's expected JSON push format
-      - Sends via HTTP POST to /loki/api/v1/push
-      Used with Spring Boot’s default Logback setup.
+      OpenTelemetry Logback Appender
+      - Emits structured logs using OTLP over gRPC/HTTP
+      - Designed to integrate with the OpenTelemetry Collector
+      - Supports trace and span context propagation
     -->
     <dependency>
-      <groupId>com.github.loki4j</groupId>
-      <artifactId>loki-logback-appender</artifactId>
-      <version>1.6.0</version>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-logback-appender-1.0</artifactId>
+      <version>2.15.0-alpha</version> <!-- waiting on GA version version -->
     </dependency>
 
     <!-- Test dependencies -->

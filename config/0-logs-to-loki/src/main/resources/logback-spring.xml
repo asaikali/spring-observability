@@ -15,12 +15,12 @@
   <springProperty scope="context" name="appGroup" source="spring.application.group"/>
   <springProperty scope="context" name="appVersion" source="spring.application.version"/>
 
-  <!-- ECS-style custom structured fields -->
+  <!-- ECS-style custom-structured fields -->
   <springProperty scope="context" name="env" source="logging.structured.ecs.service.environment"/>
   <springProperty scope="context" name="node" source="logging.structured.ecs.service.node-name"/>
 
   <!-- Loki URL -->
-  <springProperty name="OTEL_URL" source="otel.url" defaultValue="http://localhost:3100"/>
+  <springProperty name="LOKI_URL" source="loki.url" defaultValue="http://localhost:3100"/>
 
   <!-- ========================================================================= -->
   <!-- 3. Configure Batching Behavior for Loki Logs                             -->

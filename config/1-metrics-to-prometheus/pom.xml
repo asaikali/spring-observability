@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>com.example.config</groupId>
-  <artifactId>1-logs-to-otel</artifactId>
+  <artifactId>1-metrics-to-prometheus</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
   <dependencies>
@@ -44,7 +44,7 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- observability depenedncies -->
+    <!-- observability dependencies -->
     <!--
       Enables Spring Boot Actuator endpoints like:
       - /actuator/health
@@ -57,15 +57,14 @@
     </dependency>
 
     <!--
-      OpenTelemetry Logback Appender
-      - Emits structured logs using OTLP over gRPC/HTTP
-      - Designed to integrate with the OpenTelemetry Collector
-      - Supports trace and span context propagation
+      Registers Prometheus as the Micrometer backend.
+      Exposes all metrics in Prometheus-compatible format at:
+      - GET /actuator/prometheus
+      Prometheus scrapes this endpoint at intervals.
     -->
     <dependency>
-      <groupId>io.opentelemetry.instrumentation</groupId>
-      <artifactId>opentelemetry-logback-appender-1.0</artifactId>
-      <version>2.15.0-alpha</version> <!-- waiting on GA version version -->
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
 
     <!-- Test dependencies -->
