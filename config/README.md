@@ -1,34 +1,34 @@
-# config
+# Config
 
-There are  many ways to configuring a Spring Boot application to send logs, metrics, and traces 
-to an observability system. The project in this folder sytemtiaclyl explore how to do this buy 
-taking a simple application that returns a random quote and getting its log then metrics then traces 
-to the obseravbiiltity system. 
+There are many ways to configure a Spring Boot application to send logs, metrics, and traces 
+to an observability system. The project in this folder systematically explores how to do this by 
+taking a simple application that returns a random quote and sending its logs, metrics, and traces 
+to the observability system.
 
-## Secanrios 
+## Scenarios
 
-There are 8 applicaitons in this section.
+There are 8 applications in this section:
 
-* 0-logs-to-loki - shows how to get logback logs from spring boot to loki using a loki logback appender 
-* 1-metrics-to-prometheus - show how to get metrics to promeutheus, prometheus dose the scrapping directly,
-* 2-tarces-to-tepmo - shows how to get tarces and spans to tempo using the zipkin compatability 
-* 3-all-to-backend - shows how get logs, metrics, and traces to loki, prometheus, tempo in one app, the integartion is between the boot app and teh backend.
+* 0-logs-to-loki - Shows how to send logback logs from Spring Boot to Loki using a Loki logback appender 
+* 1-metrics-to-prometheus - Shows how to send metrics to Prometheus (Prometheus does the scraping directly)
+* 2-traces-to-tempo - Shows how to send traces and spans to Tempo using the Zipkin compatibility API
+* 3-all-to-backend - Shows how to send logs, metrics, and traces to Loki, Prometheus, and Tempo in one app (the integration is between the Boot app and the backend)
 
-Each of the above apps shows how to configure the classapth and the Spring boot `application.yaml`. The above
-apps are then repeated where we switch Spring Boot to a pure OpenTelementry approach, shown in a a set 
-of samples.
+Each of the above apps demonstrates how to configure the classpath and the Spring Boot `application.yaml`. The above
+apps are then repeated with a different approach where we switch Spring Boot to a pure OpenTelemetry implementation, 
+shown in the following set of samples:
 
-* 4-log-to-otel - show how logs are sent to otel collector using OTLP 
-* 5-metrics-to-otel - shows how metrics are sent to otel collector using OTLP
-* 6-traces-to-otel - shows how traces are sent to the otel collector using OTLP
-* 7-all-to-otel - shows how logs, metrics, and traces are sent to the otel collector using OTLP 
+* 4-log-to-otel - Shows how logs are sent to the OpenTelemetry collector using OTLP 
+* 5-metrics-to-otel - Shows how metrics are sent to the OpenTelemetry collector using OTLP
+* 6-traces-to-otel - Shows how traces are sent to the OpenTelemetry collector using OTLP
+* 7-all-to-otel - Shows how logs, metrics, and traces are sent to the OpenTelemetry collector using OTLP
 
 ## Application Code 
 
-The applicaiton code in all the above secarios is the same, the only thing
-different is the classapth, and the configuration of the application. The app
-exposes a single url `/random-quote` that returns a json object with a 
-random quotation. 
+The application code in all the above scenarios is the same; the only differences
+are in the classpath and the configuration of the application. The app
+exposes a single URL `/random-quote` that returns a JSON object with a 
+random quotation.
 
 ```text
 http :8080/random-quote
@@ -49,7 +49,7 @@ Transfer-Encoding: chunked
 
 ### Quotes Repository 
 
-The quotes come from the database using Spring Data JPA repository 
+The quotes come from the database using a Spring Data JPA repository:
 
 ```java
 public interface QuoteRepository extends JpaRepository<Quote, Integer> {
@@ -100,8 +100,8 @@ public class Quote {
 ```
 ### Logs Controller 
 
-In the logs version of the app, we have a single log message printed form
-the logs controller shown below. 
+In the logs version of the app, we have a single log message printed from
+the logs controller shown below:
 
 ```java
 @RestController
@@ -125,7 +125,7 @@ public class QuoteController {
 
 ### Metrics Controller
 
-In the metrics version, we add a counter for counting the number of generated quotes
+In the metrics version, we add a counter for tracking the number of generated quotes:
 
 ```java
 @RestController
@@ -152,7 +152,7 @@ public class QuoteController {
 
 ### Traces Controller
 
-In the traces version, we add custom tag to the current span and we also configuring
+In the traces version, we add a custom tag to the current span and we also configure
 tracing on the JDBC source.
 
 ```java
@@ -176,9 +176,9 @@ public class QuoteController {
     Quote result = quoteRepository.findRandomQuote();
     this.generatedQuotes.increment();
     Span currentSpan = tracer.currentSpan();
-    if( currentSpan != null) {
+    if (currentSpan != null) {
       currentSpan.tag("quote", result.getQuote());
-      log.info("quoted added to current: {}", result.getQuote());
+      log.info("Quote added to current span: {}", result.getQuote());
     }
     log.info("Random quote generated: {} by {}", result.getQuote(), result.getAuthor());
     return result;
@@ -186,5 +186,5 @@ public class QuoteController {
 }
 ```
 ### Code Summary
-By using the same code across the apps, with us adding log message, then a metric, then span attributes we can focus on exploring what the classapth configuration looks like and what the applicatiion.yaml looks like.
-the goal is to allow you to understadnw how to configure spring boot for optimal observability and give you a working example you can cut and paste configuration settings from.
+By using the same code across all apps, with progressive additions (first a log message, then a metric, then span attributes), we can focus on exploring the classpath configuration and the `application.yaml` settings.
+The goal is to help you understand how to configure Spring Boot for optimal observability and provide working examples from which you can copy and paste configuration settings.
