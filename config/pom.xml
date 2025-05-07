@@ -17,5 +17,6 @@
 		<module>1-metrics-to-prometheus</module>
 		<module>2-traces-to-tempo</module>
 		<module>3-all-to-backends</module>
+		<module>5-metrics-to-otel</module>
 	</modules>
 </project>
