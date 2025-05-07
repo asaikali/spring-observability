@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Billboard</title>
+</head>
+<body>
+<h1> Platform: <span id="platform"></span></h1>
+<h1 id="message"> Loading ... </h1>
+
+<script>
+    function getMessage() {
+        fetch('/random-quote')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('message').textContent = data.quote + " -- " + data.author;
+                document.getElementById('platform').textContent = data.platform;
+            })
+            .catch(error => {
+                document.getElementById('message').textContent = "Error: Got No Response";
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        window.setInterval(getMessage, 1000);
+    });
+</script>
+</body>
+</html>
