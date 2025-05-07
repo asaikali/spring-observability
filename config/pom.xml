@@ -15,5 +15,6 @@
 	<modules>
 		<module>0-logs-to-loki</module>
 		<module>1-metrics-to-prometheus</module>
+		<module>2-traces-to-tempo</module>
 	</modules>
 </project>

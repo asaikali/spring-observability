@@ -2,7 +2,6 @@ package com.example.quotes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,7 +11,7 @@ public class QuoteController {
   private final Logger log = LoggerFactory.getLogger(QuoteController.class);
   private final QuoteRepository quoteRepository;
 
-  public QuoteController(QuoteRepository quoteRepository, Environment environment) {
+  public QuoteController(QuoteRepository quoteRepository) {
     this.quoteRepository = quoteRepository;
   }
 

@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>com.example.config</groupId>
-  <artifactId>1-metrics-to-prometheus</artifactId>
+  <artifactId>2-traces-to-tempo</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
   <dependencies>
@@ -57,15 +57,39 @@
     </dependency>
 
     <!--
-      Registers Prometheus as the Micrometer backend.
-      Exposes all metrics in Prometheus-compatible format at:
-      - GET /actuator/prometheus
-      Prometheus scrapes this endpoint at regular intervals.
+      Micrometer Tracing bridge for Brave (Zipkin).
+      This provides the integration layer between Micrometer's tracing API
+      and Brave's implementation of span creation, context propagation, etc.
     -->
     <dependency>
       <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-prometheus</artifactId>
+      <artifactId>micrometer-tracing-bridge-brave</artifactId>
     </dependency>
+
+    <!--
+      Required by Brave to send spans to a Zipkin-compatible backend (e.g., Tempo).
+      Sends spans via HTTP to:
+      - POST http://localhost:9411/api/v2/spans
+      Tempo must be running with Zipkin compatibility enabled.
+    -->
+    <dependency>
+      <groupId>io.zipkin.reporter2</groupId>
+      <artifactId>zipkin-reporter-brave</artifactId>
+    </dependency>
+
+    <!--
+      Micrometer Observability integration for JDBC DataSources.
+      Automatically creates observation spans for database queries,
+      including connection, statement execution, and transaction boundaries.
+
+      When used with Micrometer Tracing and a compatible tracer (e.g., Brave),
+      it allows capturing SQL query performance as part of your distributed traces.
+    -->
+    <dependency>
+      <groupId>net.ttddyy.observation</groupId>
+      <artifactId>datasource-micrometer-spring-boot</artifactId>
+    </dependency>
+
 
     <!-- Test dependencies -->
     <dependency>
