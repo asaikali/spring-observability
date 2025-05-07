@@ -30,6 +30,7 @@ public class QuoteController {
     Span currentSpan = tracer.currentSpan();
     if( currentSpan != null) {
       currentSpan.tag("quote", result.getQuote());
+      log.info("quoted added to current: {}", result.getQuote());
     }
     log.info("Random quote generated: {} by {}", result.getQuote(), result.getAuthor());
     return result;
