@@ -7,11 +7,13 @@
 		<artifactId>spring-observability</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>com.example.otel</groupId>
-	<artifactId>otel-sdk-instrumentation</artifactId>
+	<groupId>com.example</groupId>
+	<artifactId>instrumentation</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<modules>
+		<module>micrometer-native-monolith</module>
+		<module>micrometer-otel-monolith</module>
 	</modules>
 </project>

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.example</groupId>
-        <artifactId>no-instrumentation</artifactId>
+        <artifactId>instrumentation</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <groupId>com.example.no-instrumentation.micrometer-native</groupId>

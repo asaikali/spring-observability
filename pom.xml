@@ -21,9 +21,7 @@
     </properties>
     <modules>
         <module>config</module>
-        <module>observation-api-instrumentation</module>
-        <module>otel-sdk-instrumentation</module>
-        <module>no-instrumentation</module>
+        <module>instrumentation</module>
     </modules>
     <dependencyManagement>
         <dependencies>
