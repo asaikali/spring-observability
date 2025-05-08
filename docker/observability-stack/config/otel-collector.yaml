@@ -8,14 +8,14 @@ receivers:
 
 processors:
   batch:
-  transform:
-    log_statements:
-      - context: log
-        statements:
-          - parse_json(body)
-          - set(attributes["service.name"], body["service.name"])
-          - set(attributes["log.level"], body["log.level"])
-          - set(attributes["trace_id"], body["trace.id"])
+#  transform:
+#    log_statements:
+#      - context: log
+#        statements:
+#          - parse_json(body)
+#          - set(attributes["service.name"], body["service.name"])
+#          - set(attributes["log.level"], body["log.level"])
+#          - set(attributes["trace_id"], body["trace.id"])
 
 
 
@@ -42,7 +42,7 @@ service:
       exporters: [prometheus]
     logs:
       receivers: [otlp]
-      processors: [transform]
+      processors: [batch]
       exporters: [loki]
     traces:
       receivers: [otlp]

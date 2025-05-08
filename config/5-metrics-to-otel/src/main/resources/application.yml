@@ -1,6 +1,6 @@
 spring:
   application:
-    name: metrics-to-prometheus
+    name: metrics-to-otel
     group: config
     version: 1.0.0
 
@@ -19,3 +19,10 @@ management:
       service_name: ${spring.application.name}
       service_group: ${spring.application.config}
       service_version: ${spring.application.version}
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+        step: 5s
+        enabled: true
+        base-time-unit: seconds
