@@ -75,24 +75,6 @@ it is best if you use the micrometer observation api. this let you  decide
 how to configure micrometer at deployment time. Scenarios 4,5,6 are good
 choices. 
 
-## Software Prerequisites
-
-### Java tooling
-
-* [Java 21 JDK](https://sdkman.io/)
-* [Maven](https://maven.apache.org/index.html)
-* Favourite Java IDE one of
-    * [Eclipse Spring Tool Suite](https://spring.io/tools)
-    * [IntelliJ](https://www.jetbrains.com/idea/download)
-    * [VSCode](https://code.visualstudio.com/)
-
-### network tools
-* [cURL](https://curl.se/docs/manpage.html) 
-* [HTTPie](https://httpie.io/) 
-
-### Containerization tools
-* [Docker](https://www.docker.com/products/docker-desktop)
-
 ## Repository Structure
 
 This repository is organized into several key directories:
@@ -112,3 +94,22 @@ See the [instrumentation README](instrumentation/README.md) for a detailed list 
 ### Docker Directory
 
 The `docker` directory contains configurations for running various observability backends and supporting services needed by the sample applications.
+
+## Software Prerequisites
+
+### Java tooling
+
+* [Java 21 JDK](https://sdkman.io/)
+* [Maven](https://maven.apache.org/index.html)
+* Favourite Java IDE one of
+    * [Eclipse Spring Tool Suite](https://spring.io/tools)
+    * [IntelliJ](https://www.jetbrains.com/idea/download)
+    * [VSCode](https://code.visualstudio.com/)
+
+### network tools
+* [cURL](https://curl.se/docs/manpage.html) 
+* [HTTPie](https://httpie.io/) 
+
+### Containerization tools
+* [Docker](https://www.docker.com/products/docker-desktop)
+
