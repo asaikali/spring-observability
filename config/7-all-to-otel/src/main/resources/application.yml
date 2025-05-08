@@ -1,6 +1,6 @@
 spring:
   application:
-    name: traces-to-otel
+    name: all-to-otel
     group: config
     version: 1.0.0
   jpa:
