@@ -17,6 +17,7 @@
 		<module>1-metrics-to-prometheus</module>
 		<module>2-traces-to-tempo</module>
 		<module>3-all-to-backends</module>
+		<module>4-logs-to-otel</module>
 		<module>5-metrics-to-otel</module>
 		<module>6-traces-to-otel</module>
 		<module>7-all-to-otel</module>
