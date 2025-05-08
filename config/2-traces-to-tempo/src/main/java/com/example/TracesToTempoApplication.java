@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class TracesToTempoApplication {
 
-
   private static final Logger log = LoggerFactory.getLogger(TracesToTempoApplication.class);
 
   @Bean
@@ -20,7 +19,7 @@ public class TracesToTempoApplication {
     return new SpanHandler() {
       @Override
       public boolean end(TraceContext context, MutableSpan span, Cause cause) {
-        log.info("Sending span to Tempo: {}", span.tags());
+//        log.info("Sending span to Tempo: {}", span.tags());
         return super.end(context, span, cause);
       }
     };
