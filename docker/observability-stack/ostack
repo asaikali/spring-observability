@@ -11,8 +11,6 @@
 # - status: Display container status and connection information
 # - stop: Stop the running containers
 # - clean: Stop containers and remove all associated volumes
-# - push-log-loki: Push a test log message to Loki
-# - push-log-otel: Push a test log message to OpenTelemetry Collector
 #
 # The script handles port conflicts by detecting if the configured ports
 # are already in use by other containers, and provides options to resolve
@@ -256,8 +254,6 @@ usage() {
   printf "  ${YELLOW}stop${NC}          Stop containers\n"
   printf "  ${RED}clean${NC}         Stop containers & remove volumes\n"
   printf "  ${YELLOW}fix${NC}           Detect & fix port conflicts\n"
-  printf "  ${GREEN}push-log-loki${NC}  Push a test log message to Loki\n"
-  printf "  ${GREEN}push-log-otel${NC}  Push a test log message to OpenTelemetry Collector\n"
 }
 
 #------------------------------------------------------------------------------
@@ -341,93 +337,6 @@ case $cmd in
         shutdown_conflict "$c"
       fi
     done
-    ;;
-
-  # Push-log-loki command: Push a test log message to Loki
-  push-log-loki)
-    log header "Pushing test log to Loki"
-    
-    LOKI_URL=${LOKI_URL:-http://localhost:3100}
-    SERVICE_LABEL=${SERVICE_LABEL:-push-loki}
-
-    # build the payload
-    PAYLOAD=$(
-      cat <<EOF
-    {
-      "streams": [
-        {
-          "labels": "{app=\"${SERVICE_LABEL}\",level=\"INFO\"}",
-          "entries": [
-            {
-              "ts": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-              "line": "[TEST] Test message from ${SERVICE_LABEL} script"
-            }
-          ]
-        }
-      ]
-    }
-EOF
-    )
-
-    # Turn on tracing just for the curl call, and wrap it in an if/fi
-    if curl -vvvv -sf -X POST "${LOKI_URL}/loki/api/v1/push" \
-          -H "Content-Type: application/json" \
-          -d "${PAYLOAD}"; then
-      log success "Loki accepted the log (HTTP 2xx/3xx)"
-    else
-      log error "Loki push failed"
-      exit 1
-    fi
-    ;;
-
-  # Push-log-otel command: Push a test log message to OpenTelemetry Collector
-  push-log-otel)
-    log header "Pushing test log to OpenTelemetry Collector"
-    
-    OTEL_URL=${OTEL_URL:-http://localhost:4318}
-    SERVICE_LABEL=${SERVICE_LABEL:-push-log-otel}
-
-    # build the payload
-    PAYLOAD=$(
-      cat <<EOF
-    {
-      "resourceLogs": [
-        {
-          "resource": {
-            "attributes": [
-              { "key": "service.name", "value": { "stringValue": "${SERVICE_LABEL}" } }
-            ]
-          },
-          "scopeLogs": [
-            {
-              "scope": {},
-              "logRecords": [
-                {
-                  "timeUnixNano": "$(( $(date -u +%s) * 1000000000 ))",
-                  "body": { "stringValue": "[TEST] Test message from ${SERVICE_LABEL} script" },
-                  "severityText": "INFO"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-EOF
-    )
-
-    # trace only the curl, but catch its exit in an if-statement
-    set -x
-    if curl -sf -X POST "${OTEL_URL}/v1/logs" \
-          -H "Content-Type: application/json" \
-          -d "${PAYLOAD}"; then
-      set +x
-      log success "OTel Collector accepted the log (HTTP 2xx/3xx)"
-    else
-      set +x
-      log error "OTel Collector push failed"
-      exit 1
-    fi
     ;;
 
   # Unknown command or no command: Show usage information
