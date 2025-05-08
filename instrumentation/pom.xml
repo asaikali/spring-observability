@@ -13,7 +13,7 @@
 	<packaging>pom</packaging>
 	
 	<modules>
-		<module>observation-api</module>
-		<module>otel-sdk</module>
+		<module>0-instrumentation-observation-api</module>
+		<module>1-instrumentation-otel-sdk</module>
 	</modules>
 </project>

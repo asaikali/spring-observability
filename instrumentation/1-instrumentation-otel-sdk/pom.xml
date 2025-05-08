@@ -8,8 +8,8 @@
         <artifactId>instrumentation</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <groupId>com.example.no-instrumentation.micrometer-native</groupId>
-    <artifactId>micrometer-otel-monolith</artifactId>
+    <groupId>com.example</groupId>
+    <artifactId>1-instrumentation-otel-sdk</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <dependencies>
