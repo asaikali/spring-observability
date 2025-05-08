@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.example</groupId>
+    <artifactId>config</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <groupId>com.example.config</groupId>
+  <artifactId>7-all-to-otel</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <dependencies>
+
+    <!-- web dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- database dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- observability dependencies -->
+    <!--
+      Enables Spring Boot Actuator endpoints like:
+      - /actuator/health
+      Required to activate observability auto-configuration.
+      Without this, observability features like metrics and tracing will not activate.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!--
+       Registers the OTLP exporter as the Micrometer backend.
+       Sends metrics using the OpenTelemetry Protocol (OTLP) over HTTP or gRPC to a collector or backend.
+       This is typically used when integrating with an OpenTelemetry Collector or observability platforms that support OTLP.
+       Note: This does not expose metrics at /actuator/prometheus. Use micrometer-registry-prometheus for Prometheus scraping.
+      -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-otlp</artifactId>
+    </dependency>
+
+    <!--
+     Micrometer Tracing Bridge for OpenTelemetry (OTel).
+
+     This dependency connects Micrometer's tracing API with the OpenTelemetry SDK,
+     enabling the export of spans (traces) using the OpenTelemetry Protocol (OTLP)
+     over HTTP or gRPC to an OTLP-compatible backend (e.g., OpenTelemetry Collector, Tempo, etc.).
+
+     - Required when using OTLP as the tracing exporter.
+     - Complements `micrometer-observation` by bridging it to OpenTelemetry.
+     - Does not affect metric export or Prometheus scraping; it is only for tracing.
+
+     For OTLP metric export, use: `micrometer-registry-otlp`
+     For Prometheus metric scraping, use: `micrometer-registry-prometheus`
+   -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-tracing-bridge-otel</artifactId>
+    </dependency>
+
+    <!--
+  OpenTelemetry OTLP Exporter.
+
+  This dependency provides the OTLP (OpenTelemetry Protocol) exporter implementation
+  used to send telemetry data (traces, metrics, logs) to an OTLP-compatible backend
+  over HTTP or gRPC. It is the core exporter used by Micrometer Tracing when
+  bridging to OpenTelemetry.
+
+  - Enables exporting spans to collectors such as the OpenTelemetry Collector or directly to backends like Tempo.
+  - Required when using `micrometer-tracing-bridge-otel` for OTLP tracing.
+  - Supports both gRPC and HTTP transport protocols for OTLP.
+
+  This exporter is configured programmatically or via environment variables/system properties.
+-->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-otlp</artifactId>
+    </dependency>
+
+    <!--
+  Micrometer Observability integration for JDBC DataSources.
+  Automatically creates observation spans for database queries,
+  including connection, statement execution, and transaction boundaries.
+
+  When used with Micrometer Tracing and a compatible tracer (e.g., Brave),
+  it allows capturing SQL query performance as part of your distributed traces.
+-->
+    <dependency>
+      <groupId>net.ttddyy.observation</groupId>
+      <artifactId>datasource-micrometer-spring-boot</artifactId>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

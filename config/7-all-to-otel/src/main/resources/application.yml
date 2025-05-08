@@ -1,6 +1,6 @@
 spring:
   application:
-    name: metrics-to-otel
+    name: traces-to-otel
     group: config
     version: 1.0.0
   jpa:
@@ -21,10 +21,25 @@ management:
       service.name: ${spring.application.name}
       service.group: ${spring.application.config}
       service.version: ${spring.application.version}
+  tracing:
+    sampling:
+      probability: 1.0
+    enabled: true
   otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+      export:
+        enabled: true
     metrics:
       export:
         url: http://localhost:4318/v1/metrics
         step: 5s
         enabled: true
         base-time-unit: seconds
+#
+# need to set this so that the service.name shows up in tempo
+#
+otel:
+  resource:
+    attributes:
+      service.name: ${spring.application.name}

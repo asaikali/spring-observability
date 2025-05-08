@@ -19,5 +19,6 @@
 		<module>3-all-to-backends</module>
 		<module>5-metrics-to-otel</module>
 		<module>6-traces-to-otel</module>
+		<module>7-all-to-otel</module>
 	</modules>
 </project>
