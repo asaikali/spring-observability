@@ -18,5 +18,6 @@
 		<module>2-traces-to-tempo</module>
 		<module>3-all-to-backends</module>
 		<module>5-metrics-to-otel</module>
+		<module>6-traces-to-otel</module>
 	</modules>
 </project>

@@ -19,7 +19,7 @@ public class TracesToTempoApplication {
     return new SpanHandler() {
       @Override
       public boolean end(TraceContext context, MutableSpan span, Cause cause) {
-//        log.info("Sending span to Tempo: {}", span.tags());
+        //        log.info("Sending span to Tempo: {}", span.tags());
         return super.end(context, span, cause);
       }
     };

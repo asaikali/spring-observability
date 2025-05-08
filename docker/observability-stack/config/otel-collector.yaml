@@ -26,7 +26,7 @@ exporters:
     endpoint: http://loki:3100/loki/api/v1/push
     tls:
       insecure: true
-  otlp/tempo:
+  otlp:
     endpoint: tempo:4317 #gRPC endpoint
     tls:
       insecure: true
@@ -47,4 +47,4 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/tempo]
+      exporters: [otlp]

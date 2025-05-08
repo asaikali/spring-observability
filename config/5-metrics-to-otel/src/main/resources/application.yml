@@ -3,6 +3,8 @@ spring:
     name: metrics-to-otel
     group: config
     version: 1.0.0
+  jpa:
+    open-in-view: false
 
 management:
   endpoints:
