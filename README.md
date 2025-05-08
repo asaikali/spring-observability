@@ -92,3 +92,23 @@ choices.
 
 ### Containerization tools
 * [Docker](https://www.docker.com/products/docker-desktop)
+
+## Repository Structure
+
+This repository is organized into several key directories:
+
+### Config Directory
+
+The `config` directory contains sample applications demonstrating different ways to configure Spring Boot for observability. These examples cover various approaches to sending logs, metrics, and traces to different backends, both directly and through the OpenTelemetry collector.
+
+See the [config README](config/README.md) for a detailed list of the sample applications and their specific configurations.
+
+### Instrumentation Directory
+
+The `instrumentation` directory contains sample applications demonstrating different approaches to instrumenting Spring Boot applications. These examples showcase various instrumentation techniques using different APIs and SDKs.
+
+See the [instrumentation README](instrumentation/README.md) for a detailed list of the sample applications and their specific instrumentation approaches.
+
+### Docker Directory
+
+The `docker` directory contains configurations for running various observability backends and supporting services needed by the sample applications.
