@@ -22,11 +22,29 @@ cloud setup.
 
 ## Usage
 
-1. **Start the Stack**: Run `docker compose up -d` or `./up.sh`
-2. **Stop the Stack**: Run `docker compose down` or `./down.sh`
-3. **Cleanup Volumes**: Run `docker compose down --volumes` or `./cleanup.sh`
-3. **Check Status**: Run `docker compose ps` or `./status.sh`
-4. **View Logs**: Run `docker compose logs -f <service-name>` to view logs for
+The `ostack` script provides a simple interface to manage the observability stack containers. Make sure to make the script executable with `chmod +x ostack` before using it.
+
+1. **Start the Stack**: Run `./ostack start`
+   - This starts all containers in detached mode
+   - Shows container status and connection information when complete
+
+2. **Check Status**: Run `./ostack status`
+   - Displays the status of all containers
+   - Shows connection information for each service
+
+3. **Stop the Stack**: Run `./ostack stop`
+   - Stops all running containers
+   - Removes associated networks
+
+4. **Clean Up**: Run `./ostack clean`
+   - Stops all containers
+   - Removes all associated volumes (data cleanup)
+
+5. **Fix Port Conflicts**: Run `./ostack fix`
+   - Automatically detects and resolves port conflicts
+   - Useful if you see errors about ports already being in use
+
+6. **View Logs**: Run `docker compose logs -f <service-name>` to view logs for
    a specific service. For example, `docker compose logs -f tempo`.
 
 ## 🚀 Spring Boot Observability: Direct Integration with Backend Systems
