@@ -115,4 +115,7 @@ The `docker` directory contains configurations for running various observability
 
 ## Resources
 
+### YouTube 
+[Spring Boot Observability Uncovered: Enabling & Using the Observation API Dan Vega](https://www.youtube.com/watch?v=exRkiVLyPpc)
+[Micrometer Mastery: Unleash Advanced Observability in your JVM Apps by Tommy Ludwig & Jonatan Ivanov](https://www.youtube.com/watch?v=Qyku6cR6ADY)
 
