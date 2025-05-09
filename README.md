@@ -113,3 +113,6 @@ The `docker` directory contains configurations for running various observability
 ### Containerization tools
 * [Docker](https://www.docker.com/products/docker-desktop)
 
+## Resources
+
+
