@@ -23,7 +23,7 @@ public class QuoteController {
 
     Observation observation =
         Observation.createNotStarted(
-            null, new QuoteConvention(), () -> context, observationRegistry);
+            null, new QuoteContextConvention(), () -> context, observationRegistry);
 
     //    Observation observation = Observation.createNotStarted("quote",
     //        () -> context,
