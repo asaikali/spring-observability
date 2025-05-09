@@ -1,7 +1,9 @@
 package com.example.quotes;
 
-import jakarta.persistence.*;
-import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "quotes")
@@ -15,16 +17,6 @@ public class Quote {
 
   @Column(name = "author")
   private String author;
-
-  @Transient private String platform = "";
-
-  public String getPlatform() {
-    return platform;
-  }
-
-  public void setPlatform(String platform) {
-    this.platform = platform;
-  }
 
   public Integer getId() {
     return id;
@@ -48,24 +40,5 @@ public class Quote {
 
   public void setAuthor(String author) {
     this.author = author;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Quote quote1 = (Quote) o;
-    return Objects.equals(id, quote1.id)
-        && Objects.equals(quote, quote1.quote)
-        && Objects.equals(author, quote1.author);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, quote, author);
   }
 }

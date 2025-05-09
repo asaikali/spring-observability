@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class NativeMonolithApplication {
-
+public class ObservationApiApplication {
   public static void main(String[] args) {
-    SpringApplication.run(NativeMonolithApplication.class, args);
+    SpringApplication.run(ObservationApiApplication.class, args);
   }
+
 }

@@ -1,40 +1,16 @@
 spring:
-  datasource:
-    url: "jdbc:postgresql://127.0.0.1:15432/quotes"
-    username: postgres
-    password: password
-  jpa:
-    open-in-view: false
   application:
-    name: monolith-ui-api-db # written to logs as service.name
-    group: micrometer-native # turns into a tag a way to group related microservices observations together
-    version: 1.0.0 # written to logs as service.version
-
-logging:
-  file:
-    name: logs/micrometer-native-monolith.log
-  structured:
-    ecs:
-      service:
-        environment: dev # per service settings that land in the logs
-        node-name: laptop # per service setting that lands in the log
-        # name: not needed defaults to spring.application.name
-        # version: not needed maps to spring.application.version
-    format:
-      # console: ecs
-      file: ecs
-
+    name: observation-api
+    group: instrumentation
+    version: 1.0.0
+  jpa:
+    open-in-view: true
 
 management:
   observations:
-    key-values:
-      "service.name" : "monolith-ui-api-db"
-      region: "us-east-1"
-      stack: "prod"
-  tracing:
-    enabled: true
-    sampling:
-      probability: 1
+    enable:
+      quote: false
+
   endpoints:
     web:
       exposure:
@@ -42,9 +18,13 @@ management:
   endpoint:
     health:
       show-details: always
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
-
-
-
+      encoding: json
+      export:
+        enabled: true
